@@ -3,11 +3,43 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@Autonomous(name="Red Depot")
+import org.firstinspires.ftc.teamcode.Robot.Robot;
+import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline;
+import static org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline.*;
+
+/**
+ * Created by: barta
+ * On: 11/2/2021
+ */
+
+@Autonomous(name = "RedDepot")
 public class RedDepot extends LinearOpMode {
+
+    Robot r;
+    SampleMecanumDrive drive;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        r = new Robot(hardwareMap, true, new DuckDetectorPipeline());
+        drive = new SampleMecanumDrive(hardwareMap);
+
+        /**
+         * Build Trajectories here
+         */
+
+        /**
+         * Move one:
+         *  - After reading barcode, move to deliver preloaded box on the correct level
+         */
+        TrajectorySequence movementOne = drive.trajectorySequenceBuilder(drive.getPoseEstimate()).build();
+
+        waitForStart();
+
+        BarcodePosition barcodePosition = ((DuckDetectorPipeline) r.getPipeline()).getBarcodePosition();
+        r.stopCamera();
+
 
     }
 }
