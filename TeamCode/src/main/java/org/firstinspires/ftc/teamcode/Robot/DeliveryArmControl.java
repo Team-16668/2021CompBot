@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import static org.firstinspires.ftc.teamcode.Robot.ArmModes.*;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_STOWED_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryPositions.*;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryServoPositions.*;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class DeliveryArmControl {
     int stowedCounts;
@@ -14,21 +20,28 @@ public class DeliveryArmControl {
     double power;
 
     DcMotorEx delivery;
+    Servo deliveryServo;
+
 
     ArmModes mode;
-    DeliveryPositions position;
+    DeliveryPositions slidePosition;
+    DeliveryServoPositions servoPosition;
 
-    public DeliveryArmControl(int stowedCounts, int lowCounts, int midCounts, int extendedCounts, double power, DcMotorEx delivery) {
+    public DeliveryArmControl(int stowedCounts, int lowCounts, int midCounts, int extendedCounts, double power, DcMotorEx delivery, HardwareMap hardwareMap) {
         this.stowedCounts = stowedCounts;
         this.lowCounts = lowCounts;
         this.midCounts = midCounts;
         this.extendedCounts = extendedCounts;
         this.power = power;
         this.delivery = delivery;
+        deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
 
         this.delivery.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.delivery.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
+        servoPosition = STOWED_SERVO;
 
         mode = AUTOMATIC;
     }
@@ -54,14 +67,14 @@ public class DeliveryArmControl {
         delivery.setPower(power * currentPower);
         delivery.setTargetPosition(chosenCounts);
 
-        this.position = position;
+        this.slidePosition = position;
     }
 
     public void resetEncoder() {
         delivery.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         mode = AUTOMATIC;
-        position = STOWED;
+        slidePosition = STOWED;
     }
 
     public void manualDeliveryMove(boolean up, boolean down) {
@@ -80,8 +93,8 @@ public class DeliveryArmControl {
     public DcMotorEx getDeliveryMotor() {
         return delivery;
     }
-    public DeliveryPositions getPosition() {
-        return position;
+    public DeliveryPositions getSlidePosition() {
+        return slidePosition;
     }
     public ArmModes getMode() {
         return mode;
@@ -92,4 +105,22 @@ public class DeliveryArmControl {
     public double getPower() {
         return delivery.getPower();
     }
+    public Servo getDeliveryServo() {
+        return deliveryServo;
+    }
+
+    public void deliverServoDeliver() {
+        deliveryServo.setPosition(DELIVERY_DELIVER_POS_SERVO);
+        servoPosition = DELIVER_SERVO;
+    }
+
+    public void deliverServoStow() {
+        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
+        servoPosition = STOWED_SERVO;
+    }
+
+    public DeliveryServoPositions getServoPosition() {
+        return servoPosition;
+    }
+
 }

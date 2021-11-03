@@ -17,9 +17,9 @@ public class Constants {
     public static final double MOTOR_TICKS_435_RPM = 384.5;
 
     //Different Drivetrain speeds
-    public static final double FAST_SPEED = 1.00;
-    public static final double NORMAL_SPEED = 0.75;
-    public static final double SLOW_SPEED = 0.5;
+    public static final double FAST_SPEED = 0.25;
+    public static final double NORMAL_SPEED = 0.25;
+    public static final double SLOW_SPEED = 0.55;
 
     //Hardware ID's
     public static final String LEFT_FRONT = "left_front";

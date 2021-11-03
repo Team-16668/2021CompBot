@@ -84,15 +84,18 @@ public class RedCarousel extends LinearOpMode {
         }
 
         //TODO: Set up this function to raise the delivery mechanism
-        r.getDelivery().moveDelivery(deliveryPosition);
+        r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
-        r.deliverServoDeliver();
+        r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(500);
-        r.deliverServoStow();
+        r.getDeliveryControl().deliverServoStow();
 
-        r.getDelivery().moveDelivery(STOWED);
+        r.getDeliveryControl().moveDelivery(STOWED);
         drive.followTrajectoryAsync(toCarousel);
+        r.carouselClockwise();
+        Thread.sleep(1000);
+        r.getCarouselMotor().setPower(1);
 
         Thread.sleep((long) settings.getChosenParkDelay());
 
