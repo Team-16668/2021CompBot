@@ -119,7 +119,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
         }
     }
 
-    public enum BarcodePosition {LEFT, MIDDLE, RIGHT, NONE}
+    public static enum BarcodePosition {LEFT, MIDDLE, RIGHT, NONE}
 
     public BarcodePosition getBarcodePosition() {
         return barcodePosition;
