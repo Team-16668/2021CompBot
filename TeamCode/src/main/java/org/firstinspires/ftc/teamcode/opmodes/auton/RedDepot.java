@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
-import org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline;
-import static org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline.*;
+import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.*;
 
 /**
  * Created by: barta
@@ -22,7 +22,7 @@ public class RedDepot extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        r = new Robot(hardwareMap, true, new DuckDetectorPipeline());
+        r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
 
         /**
@@ -37,7 +37,7 @@ public class RedDepot extends LinearOpMode {
 
         waitForStart();
 
-        BarcodePosition barcodePosition = ((DuckDetectorPipeline) r.getPipeline()).getBarcodePosition();
+        BarcodePosition barcodePosition = ((ShippingElementDetector) r.getPipeline()).getBarcodePosition();
         r.stopCamera();
 
 

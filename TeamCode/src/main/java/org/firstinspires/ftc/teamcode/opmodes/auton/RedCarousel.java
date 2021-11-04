@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.auton;
 
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryPositions.*;
-import static org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline.BarcodePosition.*;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.*;
 import static java.lang.Math.*;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline;
-import org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline.BarcodePosition;
+import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
+import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition;
 
 /**
  * Created by: barta
@@ -31,7 +31,7 @@ public class RedCarousel extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        r = new Robot(hardwareMap, true, new DuckDetectorPipeline());
+        r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
         settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
@@ -68,7 +68,7 @@ public class RedCarousel extends LinearOpMode {
 
         waitForStart();
 
-        BarcodePosition position = ((DuckDetectorPipeline) r.getPipeline()).getBarcodePosition();
+        BarcodePosition position = ((ShippingElementDetector) r.getPipeline()).getBarcodePosition();
 
         DeliveryPositions deliveryPosition = HIGH;
 

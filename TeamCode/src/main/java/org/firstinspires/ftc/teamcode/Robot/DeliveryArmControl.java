@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.*;
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static org.firstinspires.ftc.teamcode.Robot.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
@@ -36,9 +38,9 @@ public class DeliveryArmControl {
         this.delivery = delivery;
         deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
 
-        this.delivery.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.delivery.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        this.delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.delivery.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
+        this.delivery.setMode(STOP_AND_RESET_ENCODER);
+        //this.delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
         servoPosition = STOWED_SERVO;
@@ -66,20 +68,22 @@ public class DeliveryArmControl {
 
         delivery.setPower(power * currentPower);
         delivery.setTargetPosition(chosenCounts);
+        delivery.setMode(RUN_TO_POSITION);
 
         this.slidePosition = position;
     }
 
     public void resetEncoder() {
-        delivery.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        delivery.setMode(STOP_AND_RESET_ENCODER);
+        delivery.setMode(RUN_USING_ENCODER);
+        //delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         mode = AUTOMATIC;
         slidePosition = STOWED;
     }
 
     public void manualDeliveryMove(boolean up, boolean down) {
         if(mode == AUTOMATIC) {
-            delivery.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            delivery.setMode(RUN_USING_ENCODER);
             mode = MANUAL;
         }
 

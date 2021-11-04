@@ -58,7 +58,7 @@ public class ArmControlTest extends LinearOpMode {
             }
 
             if(currGamepadB && currGamepadB != prevGamepadB) {
-                if(r.getIntakeDirection() == FORWARD) {
+                if(r.getIntakeDirection() == FORWARD || r.getIntakeDirection() == STOPPED) {
                     r.runIntakeBackwards();
                 } else if(r.getIntakeDirection() == BACKWARD) {
                     r.runIntakeForward();
