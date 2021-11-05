@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Robot;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
+import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.*;
 import static org.firstinspires.ftc.teamcode.Robot.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
@@ -38,7 +40,9 @@ public class DeliveryArmControl {
         this.delivery = delivery;
         deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
 
-        this.delivery.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
+        this.delivery.setDirection(REVERSE);
+
+        this.delivery.setZeroPowerBehavior(BRAKE);
         this.delivery.setMode(STOP_AND_RESET_ENCODER);
         //this.delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -56,6 +60,7 @@ public class DeliveryArmControl {
         int chosenCounts = 0;
         if(position == STOWED) {
             chosenCounts = stowedCounts;
+            deliverServoStow();
         } else if(position == LOW) {
             chosenCounts = lowCounts;
         } else if(position == MID) {
@@ -64,7 +69,7 @@ public class DeliveryArmControl {
             chosenCounts = extendedCounts;
         }
 
-        int currentPower = delivery.getCurrentPosition() > stowedCounts ? 1 : -1;
+        int currentPower = delivery.getCurrentPosition() < stowedCounts ? 1 : -1;
 
         delivery.setPower(power * currentPower);
         delivery.setTargetPosition(chosenCounts);
@@ -86,14 +91,26 @@ public class DeliveryArmControl {
             delivery.setMode(RUN_USING_ENCODER);
             mode = MANUAL;
         }
-
         if(up) {
             delivery.setPower(power);
-        } else {
+        } else if (down) {
             delivery.setPower(-power);
         }
     }
 
+    public void deliverServoDeliver() {
+        deliveryServo.setPosition(DELIVERY_DELIVER_POS_SERVO);
+        servoPosition = DELIVER_SERVO;
+    }
+
+    public void deliverServoStow() {
+        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
+        servoPosition = STOWED_SERVO;
+    }
+
+    public DeliveryServoPositions getServoPosition() {
+        return servoPosition;
+    }
     public DcMotorEx getDeliveryMotor() {
         return delivery;
     }
@@ -111,20 +128,6 @@ public class DeliveryArmControl {
     }
     public Servo getDeliveryServo() {
         return deliveryServo;
-    }
-
-    public void deliverServoDeliver() {
-        deliveryServo.setPosition(DELIVERY_DELIVER_POS_SERVO);
-        servoPosition = DELIVER_SERVO;
-    }
-
-    public void deliverServoStow() {
-        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
-        servoPosition = STOWED_SERVO;
-    }
-
-    public DeliveryServoPositions getServoPosition() {
-        return servoPosition;
     }
 
 }

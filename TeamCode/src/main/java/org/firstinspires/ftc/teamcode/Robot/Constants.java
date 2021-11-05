@@ -11,7 +11,7 @@ public class Constants {
     public static final double DELIVERY_STOWED_COUNTS = 0;
 
     public static final double INTAKE_SPEED = 1.00;
-    public static final double DELIVERY_SPEED = 0.5;
+    public static final double DELIVERY_SPEED = 0.25;
     //TODO: Update this to the correct value
     public static final double CAROUSEL_RPM = 50;
     public static final double MOTOR_TICKS_435_RPM = 384.5;
