@@ -15,17 +15,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.HSV;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INPUT;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INRANGE;
+
 @Config
-public class DuckDetectorPipeline extends OpenCvPipeline {
+public class ShippingElementDetector extends OpenCvPipeline {
 
     //Upper and lower color boundaries for duck
     //TODO: Tune these values
-    public static Scalar lowerB = new Scalar(20, 100, 0);
-    public static Scalar upperB = new Scalar(30, 255, 255);
+    public static int hue1 = 25;
+    public static int saturation1 = 100;
+    public static int value1 = 0;
+    public static int hue2 = 30;
+    public static int saturation2 = 255;
+    public static int value2 = 255;
+    public Scalar lowerB = new Scalar(hue1, saturation1, value1);
+    public Scalar upperB = new Scalar(hue2, saturation2, value2);
     //Lines for the left, middle, and right barcodes
     //TODO: Tune these values also
-    public double leftBoundary = 100;
-    public double rightBoundary = 200;
+    public double leftBoundary = 200;
+    public double rightBoundary = 100;
 
     double centerX;
     double centerY;
@@ -37,10 +47,10 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
     private MatOfPoint biggestContour;
     private Rect boundingRect;
 
-    private Mats activeMat = Mats.INPUT;
+    private Mats activeMat = INPUT;
     private BarcodePosition barcodePosition = BarcodePosition.LEFT;
 
-    public DuckDetectorPipeline() {
+    public ShippingElementDetector() {
         NormalImage = new Mat();
         HSVMat = new Mat();
         InRangeMat = new Mat();
@@ -60,11 +70,17 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
+        lowerB = new Scalar(hue1, saturation1, value1);
+        upperB = new Scalar(hue2, saturation2, value2);
+
         NormalImage = input;
         //Convert to HSV, then to binary Mat, then find the contours of everyhting
         //that's yellow enough in the field of view
         Imgproc.cvtColor(NormalImage, HSVMat, Imgproc.COLOR_RGB2HSV);
         Core.inRange(HSVMat, lowerB, upperB, InRangeMat);
+
+        contours.clear();
+
         Imgproc.findContours(InRangeMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
 
         Imgproc.drawContours(getActiveMat(), contours, -1, new Scalar(255, 255, 0));
@@ -82,13 +98,13 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
             boundingRect = null;
         }
 
-        Imgproc.line(getActiveMat(), new Point(leftBoundary, 0), new Point(leftBoundary, getActiveMat().height()), new Scalar(255, 0, 0));
-        Imgproc.line(getActiveMat(), new Point(rightBoundary, 0), new Point(rightBoundary, getActiveMat().height()), new Scalar(255, 0, 0));
+        Imgproc.line(getActiveMat(), new Point(0, leftBoundary), new Point(getActiveMat().width(), leftBoundary), new Scalar(255, 0, 0));
+        Imgproc.line(getActiveMat(), new Point(0, rightBoundary), new Point(getActiveMat().width(), rightBoundary), new Scalar(0, 255, 0));
 
         if(boundingRect != null) {
-            if(boundingRect.x < leftBoundary) {
+            if(boundingRect.y > leftBoundary) {
                 barcodePosition = BarcodePosition.LEFT;
-            } else if(boundingRect.x > rightBoundary) {
+            } else if(boundingRect.y < rightBoundary) {
                 barcodePosition = BarcodePosition.RIGHT;
             } else {
                 barcodePosition = BarcodePosition.MIDDLE;
@@ -109,7 +125,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
 
     private Mat getActiveMat(){
         //This just returns the Mat variable that corresponds to each Enum state in Mats
-        if(activeMat == Mats.INPUT) {
+        if(activeMat == INPUT) {
             return NormalImage;
         } else if(activeMat == Mats.HSV) {
             return HSVMat;
@@ -117,6 +133,20 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
             //activeMat is INRANGE
             return InRangeMat;
         }
+    }
+
+    public void loopMats() {
+        if(activeMat == INPUT) {
+            activeMat = HSV;
+        } else if (activeMat == HSV) {
+            activeMat = INRANGE;
+        } else if (activeMat == INRANGE) {
+            activeMat = INPUT;
+        }
+    }
+
+    public Mats getMat() {
+        return activeMat;
     }
 
     public static enum BarcodePosition {LEFT, MIDDLE, RIGHT, NONE}

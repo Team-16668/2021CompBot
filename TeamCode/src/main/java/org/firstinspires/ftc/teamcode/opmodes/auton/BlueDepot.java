@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.vision.DuckDetectorPipeline;
+import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 /**
  * Created by: barta
@@ -20,7 +20,7 @@ public class BlueDepot extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        r = new Robot(hardwareMap, true, new DuckDetectorPipeline());
+        r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
     }
 }

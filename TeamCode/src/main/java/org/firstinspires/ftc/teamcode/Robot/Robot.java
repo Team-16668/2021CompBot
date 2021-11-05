@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -24,6 +25,7 @@ public class Robot {
     OpenCvPipeline pipeline;
     DeliveryArmControl delivery;
     IntakeDirections intakeDirection;
+    FtcDashboard dashboard;
 
     public Robot(HardwareMap hardwareMap, boolean initializeVision, OpenCvPipeline visionPipeline) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
@@ -35,6 +37,8 @@ public class Robot {
 
         delivery = new DeliveryArmControl((int) DELIVERY_STOWED_COUNTS, (int) DELIVERY_LOW_COUNTS, (int) DELIVERY_MIDDLE_COUNTS, (int) DELIVERY_EXTENDED_COUNTS, DELIVERY_SPEED, deliveryMotor, hardwareMap);
         intakeDirection = FORWARD;
+
+        dashboard = FtcDashboard.getInstance();
 
         //TODO: Reverse any needed motors here
 
@@ -50,9 +54,10 @@ public class Robot {
 
             webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                 @Override
-                public void onOpened() { webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT); }
+                public void onOpened() { webcam.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_LEFT); }
                 @Override
                 public void onError(int errorCode) { }});
+
         }
 
     }
@@ -129,6 +134,10 @@ public class Robot {
 
     public IntakeDirections getIntakeDirection() {
         return intakeDirection;
+    }
+
+    public FtcDashboard getDashboard() {
+        return dashboard;
     }
 
     public enum IntakeDirections {
