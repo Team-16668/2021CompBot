@@ -96,6 +96,8 @@ public class RedCarousel extends LinearOpMode {
         r.carouselClockwise();
         Thread.sleep(1000);
         r.getCarouselMotor().setPower(1);
+        Thread.sleep(200);
+        r.stopCarousel();
 
         Thread.sleep((long) settings.getChosenParkDelay());
 

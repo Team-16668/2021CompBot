@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.Robot.Constants;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
@@ -71,7 +70,7 @@ public class GameTeleop extends LinearOpMode {
             r.carouselCounterClockwise();
         } else {
             if(r.getCarouselMotor().getPower() != 0) {
-                r.carouselStop();
+                r.stopCarousel();
             }
         }
     }

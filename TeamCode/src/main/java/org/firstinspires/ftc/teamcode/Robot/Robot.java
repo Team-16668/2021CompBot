@@ -94,7 +94,7 @@ public class Robot {
         setMotorRPM(carouselMotor, MOTOR_TICKS_435_RPM, -CAROUSEL_RPM);
     }
 
-    public void carouselStop() {
+    public void stopCarousel() {
         carouselMotor.setPower(0);
     }
 
