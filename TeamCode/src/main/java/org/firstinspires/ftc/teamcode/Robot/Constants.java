@@ -5,8 +5,8 @@ public class Constants {
     //Constants for the intake and delivery
     public static final double DELIVERY_STOWED_POS_SERVO = 0.00;
     public static final double DELIVERY_DELIVER_POS_SERVO = 1.00;
-    public static final double DELIVERY_EXTENDED_COUNTS = (170.0 / (38 * Math.PI)) * 384.5;
-    public static final double DELIVERY_MIDDLE_COUNTS = (110.0 / (38 * Math.PI)) * 384.5;
+    public static final double DELIVERY_EXTENDED_COUNTS = ((170.0 / (38 * Math.PI)) * 384.5) * 2;
+    public static final double DELIVERY_MIDDLE_COUNTS = ((110.0 / (38 * Math.PI)) * 384.5) * 2;
     public static final double DELIVERY_LOW_COUNTS = (50.0 / (38 * Math.PI)) * 384.5;
     public static final double DELIVERY_STOWED_COUNTS = 0;
 
