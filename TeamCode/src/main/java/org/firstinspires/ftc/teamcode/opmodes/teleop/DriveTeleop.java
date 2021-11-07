@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
-@TeleOp(name="Game Teleop")
-public class GameTeleop extends LinearOpMode {
+@TeleOp(name="Just driving")
+public class DriveTeleop extends LinearOpMode {
 
     Robot r;
     SampleMecanumDrive drive;
@@ -17,20 +17,10 @@ public class GameTeleop extends LinearOpMode {
         r = new Robot(hardwareMap, false, null);
         drive = new SampleMecanumDrive(hardwareMap);
 
-
         waitForStart();
 
-        while (opModeIsActive()) {
-            //Loop for main driving code (wheel control)
+        while(opModeIsActive()) {
             r.driveControlLoop(drive, gamepad1);
-
-            //Loop for control of the carousel
-            r.carouselControlLoop(gamepad1);
-
-            //Loop for the control of the delivery arm and intake.
-            r.armControlLoopTeleOp(gamepad2);
-
         }
     }
-
 }

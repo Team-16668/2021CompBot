@@ -1,17 +1,14 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
-import static com.qualcomm.robotcore.hardware.DcMotor.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
-import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.*;
-import static org.firstinspires.ftc.teamcode.Robot.ArmModes.*;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_STOWED_POS_SERVO;
-import static org.firstinspires.ftc.teamcode.Robot.DeliveryPositions.*;
-import static org.firstinspires.ftc.teamcode.Robot.DeliveryServoPositions.*;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.*;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -26,7 +23,6 @@ public class DeliveryArmControl {
     DcMotorEx delivery;
     Servo deliveryServo;
 
-
     ArmModes mode;
     DeliveryPositions slidePosition;
     DeliveryServoPositions servoPosition;
@@ -40,7 +36,7 @@ public class DeliveryArmControl {
         this.delivery = delivery;
         deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
 
-        this.delivery.setDirection(REVERSE);
+        //this.delivery.setDirection(REVERSE);
 
         this.delivery.setZeroPowerBehavior(BRAKE);
         this.delivery.setMode(STOP_AND_RESET_ENCODER);
@@ -50,6 +46,7 @@ public class DeliveryArmControl {
         servoPosition = STOWED_SERVO;
 
         mode = AUTOMATIC;
+        slidePosition = STOWED;
     }
 
     public void moveDelivery(DeliveryPositions position) {
@@ -95,6 +92,8 @@ public class DeliveryArmControl {
             delivery.setPower(power);
         } else if (down) {
             delivery.setPower(-power);
+        } else {
+            delivery.setPower(0);
         }
     }
 
@@ -130,4 +129,15 @@ public class DeliveryArmControl {
         return deliveryServo;
     }
 
+    public enum DeliveryPositions {
+        STOWED, LOW, MID, HIGH
+    }
+
+    public enum DeliveryServoPositions {
+        STOWED_SERVO, DELIVER_SERVO
+    }
+
+    public enum ArmModes {
+        AUTOMATIC, MANUAL
+    }
 }

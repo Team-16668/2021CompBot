@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmodes.auton;
 
-import static org.firstinspires.ftc.teamcode.Robot.DeliveryPositions.*;
+import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
+import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
+import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.*;
 import static java.lang.Math.*;
 
@@ -11,8 +14,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
-import org.firstinspires.ftc.teamcode.Robot.DeliveryPositions;
+import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
+import org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition;
@@ -39,6 +43,7 @@ public class RedCarousel extends LinearOpMode {
         drive.setPoseEstimate(new Pose2d(-36, -65, toRadians(270)));
 
         settings.chooseSettings();
+        alliance = RED;
 
         /**
          * Build Trajectories
@@ -70,7 +75,7 @@ public class RedCarousel extends LinearOpMode {
 
         BarcodePosition position = ((ShippingElementDetector) r.getPipeline()).getBarcodePosition();
 
-        DeliveryPositions deliveryPosition = HIGH;
+        DeliveryArmControl.DeliveryPositions deliveryPosition = HIGH;
 
         if(position == LEFT) {
             //Level 1
@@ -93,9 +98,9 @@ public class RedCarousel extends LinearOpMode {
 
         r.getDeliveryControl().moveDelivery(STOWED);
         drive.followTrajectoryAsync(toCarousel);
-        r.carouselClockwise();
+        r.carouselClockwise(NORMAL);
         Thread.sleep(1000);
-        r.getCarouselMotor().setPower(1);
+        r.carouselClockwise(FAST);
         Thread.sleep(200);
         r.stopCarousel();
 

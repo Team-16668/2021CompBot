@@ -17,9 +17,15 @@ public class VisionTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         r = new Robot(hardwareMap, true, new ShippingElementDetector());
 
-        waitForStart();
-
         r.getDashboard().startCameraStream(r.getWebcam(), 30);
+
+        while(!opModeIsActive()) {
+            telemetry.addData("Position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
+            telemetry.addData("Active Mat", ((ShippingElementDetector) r.getPipeline()).getMat());
+            telemetry.update();
+        }
+
+        waitForStart();
 
         while(opModeIsActive()) {
 
