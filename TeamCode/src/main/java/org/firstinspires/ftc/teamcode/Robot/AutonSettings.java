@@ -4,10 +4,12 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.*;
+
 public class AutonSettings {
 
     Gamepad gamepad;
-    parkTypes parkType = parkTypes.NORMAL;
+    parkTypes parkType = REGULAR;
     Telemetry telemetry;
     double minimumParkDelay;
     double maximumParkDelay;
@@ -31,26 +33,29 @@ public class AutonSettings {
             currentB = gamepad.b;
 
             if(currentUp && currentUp != prevUp) {
-                if(chosenParkDelay++ <= maximumParkDelay) {
+                if(chosenParkDelay <= maximumParkDelay + 1) {
                     chosenParkDelay++;
                 }
             }else if (currentDown && currentDown != prevDown) {
-                if(chosenParkDelay-- >= minimumParkDelay) {
+                if(chosenParkDelay >= minimumParkDelay - 1) {
                     chosenParkDelay--;
                 }
             }
 
             if(currentB && currentB != prevB) {
-                if(parkType == parkTypes.NORMAL) {
-                    parkType = parkTypes.OFFSET;
-                } else if(parkType == parkTypes.OFFSET) {
-                    parkType = parkTypes.NORMAL;
+                if(parkType == REGULAR) {
+                    parkType = OFFSET;
+                } else if(parkType == OFFSET) {
+                    parkType = SHIPPING_AREA;
+                } else if(parkType == SHIPPING_AREA) {
+                    parkType = REGULAR;
                 }
             }
 
             telemetry.addData("Current Settings", "");
-            telemetry.addData("Park Delay", chosenParkDelay);
-            telemetry.addData("Park Type", parkType);
+            telemetry.addData("Park Delay (dpad up and down) ", chosenParkDelay);
+            telemetry.addData("Park Type (b)", parkType);
+            telemetry.addData("Lock in settings", "a");
             telemetry.update();
 
             prevUp = currentUp;
@@ -66,7 +71,7 @@ public class AutonSettings {
     }
 
     public enum parkTypes {
-        NORMAL, OFFSET
+        REGULAR, OFFSET, SHIPPING_AREA
     }
 
     public parkTypes getParkType() {

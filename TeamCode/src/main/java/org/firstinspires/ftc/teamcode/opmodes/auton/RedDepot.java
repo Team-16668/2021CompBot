@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
@@ -19,11 +20,15 @@ public class RedDepot extends LinearOpMode {
 
     Robot r;
     SampleMecanumDrive drive;
+    AutonSettings settings;
 
     @Override
     public void runOpMode() throws InterruptedException {
         r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
+        settings = new AutonSettings(gamepad1, telemetry, 0, 10);
+
+        settings.chooseSettings();
 
         /**
          * Build Trajectories here

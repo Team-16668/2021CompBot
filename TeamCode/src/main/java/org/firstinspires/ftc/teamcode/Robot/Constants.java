@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 public class Constants {
-
     //Constants for the intake and delivery
     public static final double DELIVERY_STOWED_POS_SERVO = 1.00;
     public static final double DELIVERY_DELIVER_POS_SERVO = 0.25;

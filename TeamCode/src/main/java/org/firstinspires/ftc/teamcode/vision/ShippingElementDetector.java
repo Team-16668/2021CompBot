@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.vision;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -15,6 +16,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.LEFT;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.MIDDLE;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.NONE;
+import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.RIGHT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.HSV;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INPUT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INRANGE;
@@ -153,5 +161,20 @@ public class ShippingElementDetector extends OpenCvPipeline {
 
     public BarcodePosition getBarcodePosition() {
         return barcodePosition;
+    }
+
+    public DeliveryArmControl.DeliveryPositions getDeliveryPosition() {
+        BarcodePosition position = getBarcodePosition();
+
+        if(position == LEFT) {
+            //Level 1
+            return LOW;
+        } else if(position == MIDDLE) {
+            //Level 2
+            return MID;
+        } else {
+            //Level 3
+            return HIGH;
+        }
     }
 }

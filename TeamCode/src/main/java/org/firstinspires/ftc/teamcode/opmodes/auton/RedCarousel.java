@@ -2,24 +2,37 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.*;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
+import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.NORMAL;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.*;
 import static java.lang.Math.*;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
+import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds;
+import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition;
+
+import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * Created by: barta
@@ -45,6 +58,9 @@ public class RedCarousel extends LinearOpMode {
         settings.chooseSettings();
         alliance = RED;
 
+        telemetry.addData("Building trajectories", "");
+        telemetry.update();
+
         /**
          * Build Trajectories
          */
@@ -53,40 +69,52 @@ public class RedCarousel extends LinearOpMode {
          * Deliver Preload Element
          */
         Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-24, -36, toRadians(225)))
+                .lineToLinearHeading(new Pose2d(-30, -36, toRadians(225)))
                 .build();
+
+        telemetry.addData("Building trajectories", "delivery preload");
+        telemetry.update();
 
         /**
          * Go to the Carousel
          */
         Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
-                .lineToConstantHeading(new Vector2d(-66, -66))
+                .lineToConstantHeading(new Vector2d(-60, -60))
                 .build();
+
+        telemetry.addData("Building trajectories", "toCarousel");
+        telemetry.update();
 
         /**
          * Park
          */
-        Trajectory toDepot = drive.trajectoryBuilder(toCarousel.end())
-                .splineToLinearHeading(new Pose2d(12, -66, Math.toRadians(0)), 0)
-                .splineToConstantHeading(new Vector2d(36, -66), 0)
-                .build();
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(toCarousel.end());
+        if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
+            parkBuilder. splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
+                    .splineToConstantHeading(new Vector2d(12, -66), 0)
+                    .splineToConstantHeading(new Vector2d(24, -66), 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+            if(settings.getParkType() == OFFSET) {
+                parkBuilder.splineToConstantHeading(new Vector2d(24, -36), 0);
+            }
+
+        } else if (settings.getParkType() == SHIPPING_AREA) {
+            parkBuilder.lineToLinearHeading(new Pose2d(-66, -36));
+        }
+
+        Trajectory park = parkBuilder.build();
+
+        telemetry.addData("Trajectories building complete", "");
+        telemetry.update();
 
         waitForStart();
 
-        BarcodePosition position = ((ShippingElementDetector) r.getPipeline()).getBarcodePosition();
-
-        DeliveryArmControl.DeliveryPositions deliveryPosition = HIGH;
-
-        if(position == LEFT) {
-            //Level 1
-            deliveryPosition = LOW;
-        } else if(position == MIDDLE) {
-            //Level 2
-            deliveryPosition = MID;
-        } else if(position == RIGHT || position == NONE) {
-            //Level 3
-            deliveryPosition = HIGH;
-        }
+        DeliveryArmControl.DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
 
         //TODO: Set up this function to raise the delivery mechanism
         r.getDeliveryControl().moveDelivery(deliveryPosition);
@@ -97,15 +125,15 @@ public class RedCarousel extends LinearOpMode {
         r.getDeliveryControl().deliverServoStow();
 
         r.getDeliveryControl().moveDelivery(STOWED);
-        drive.followTrajectoryAsync(toCarousel);
-        r.carouselClockwise(NORMAL);
+        drive.followTrajectory(toCarousel);
+        r.carouselCounterClockwise(NORMAL);
         Thread.sleep(1000);
-        r.carouselClockwise(FAST);
-        Thread.sleep(200);
+        r.carouselCounterClockwise(FAST);
+        Thread.sleep(1000);
         r.stopCarousel();
 
         Thread.sleep((long) settings.getChosenParkDelay());
 
-        drive.followTrajectory(toDepot);
+        drive.followTrajectory(park);
     }
 }
