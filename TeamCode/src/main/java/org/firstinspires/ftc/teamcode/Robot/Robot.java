@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
@@ -14,6 +13,7 @@ import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.*;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.ArmModes.MANUAL;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
@@ -43,10 +43,11 @@ public class Robot {
     IntakeDirections intakeDirection;
     FtcDashboard dashboard;
 
-    boolean prevDeliveryAuto = false, currDeliveryAuto, prevServoSwitch = false, currServoSwitch, prevIntakeSwitch = false, currIntakeSwitch;
+    boolean prevDeliveryAuto = false, currDeliveryAuto, prevServoSwitch = false, currServoSwitch;
     boolean deliveryUpManual, deliveryDownManual;
     boolean prevLowerDelivery = false, currLowerDelivery, prevRaiseDelivery = false, currRaiseDelivery;
     boolean resetEncoder;
+    boolean currIntakeForward, prevIntakeForward = false, currIntakeBackward, prevIntakeBackward = false;
 
     DeliveryPositions automaticPosition = HIGH;
     CarouselSpeeds carouselSpeed = NORMAL;
@@ -60,7 +61,7 @@ public class Robot {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        delivery = new DeliveryArmControl((int) DELIVERY_STOWED_COUNTS, (int) DELIVERY_LOW_COUNTS, (int) DELIVERY_MIDDLE_COUNTS, (int) DELIVERY_EXTENDED_COUNTS, DELIVERY_SPEED, deliveryMotor, hardwareMap);
+        delivery = new DeliveryArmControl((int) DELIVERY_STOWED_COUNTS, (int) DELIVERY_LOW_COUNTS, (int) DELIVERY_MIDDLE_COUNTS, (int) DELIVERY_EXTENDED_COUNTS, (int) DELIVERY_INTAKE_COUNTS, DELIVERY_SPEED, deliveryMotor, hardwareMap);
         intakeDirection = FORWARD;
 
         dashboard = FtcDashboard.getInstance();
@@ -112,22 +113,25 @@ public class Robot {
 
     /**
      * Main loop for the control of the delivery arm, as well as the intake
+     * UPDATE on 11/10/21:
+     *  Changing controls for the slide to only go down all the way when intaking.
+     *
      * @param gamepad Gamepad (preferably 2)
      */
     public void armControlLoopTeleOp(Gamepad gamepad) {
         /**
          * CONTROLS
          *  A: Automatic toggle between low and high
-         *  B: Switch intake direction. Will also start a stopped intake in the forward direction
          *  X: Move the servo between the delivered and stowed position
          *  Y: Reset the encoder of the delivery arm
          *  Dpad (Up and down): Manually move delivery arm
-         *  Left trigger: Lower the level of the delivery
-         *  Right trigger: Raise the level of the delivery
+         *  Left bumper: Lower the level of the delivery
+         *  Right bumper: Raise the level of the delivery
+         *  Right trigger: Intake forward
+         *  Left trigger: Intake Backward
          */
 
         currDeliveryAuto = gamepad.a;
-        currIntakeSwitch = gamepad.b;
         currServoSwitch = gamepad.x;
         resetEncoder = gamepad.y;
 
@@ -137,14 +141,17 @@ public class Robot {
         currLowerDelivery = gamepad.left_bumper;
         currRaiseDelivery = gamepad.right_bumper;
 
+        currIntakeForward = gamepad.right_trigger > 0;
+        currIntakeBackward = gamepad.left_trigger > 0;
+
         //Logic for Automatically moving the delivery arm
         if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
             if(getDeliveryControl().getSlidePosition() != STOWED) {
                 getDeliveryControl().moveDelivery(STOWED);
-                runIntakeForward();
+                //runIntakeForward();
             } else {
                 getDeliveryControl().moveDelivery(automaticPosition);
-                stopIntake();
+                //stopIntake();
             }
         } else if((deliveryUpManual || deliveryDownManual)) {
             //Logic for manual control of the delivery arm
@@ -184,7 +191,7 @@ public class Robot {
 
         //Move the servo between the two positions
         if(currServoSwitch && currServoSwitch != prevServoSwitch) {
-            if(getDeliveryControl().getSlidePosition() != STOWED) {
+            if(getDeliveryControl().getSlidePosition() != STOWED && getDeliveryControl().getSlidePosition() != INTAKE) {
                 if (getDeliveryControl().getServoPosition() == STOWED_SERVO)
                     getDeliveryControl().deliverServoStow();
                 else if (getDeliveryControl().getServoPosition() == DELIVER_SERVO)
@@ -193,19 +200,22 @@ public class Robot {
         }
 
         //Switch the direction of the intake
-        if(currIntakeSwitch && currIntakeSwitch != prevIntakeSwitch) {
-            if(getIntakeDirection() == FORWARD || getIntakeDirection() == STOPPED) {
-                runIntakeBackwards();
-            } else if(getIntakeDirection() == BACKWARD) {
-                runIntakeForward();
-            }
+        if(currIntakeForward) {
+            runIntakeForward();
+            getDeliveryControl().moveDelivery(INTAKE);
+        } else if(currIntakeBackward) {
+            runIntakeBackwards();
+        } else if(currIntakeForward != prevIntakeForward && currIntakeBackward != prevIntakeBackward){
+            stopIntake();
+            getDeliveryControl().moveDelivery(STOWED);
         }
 
         prevDeliveryAuto = currDeliveryAuto;
         prevServoSwitch = currServoSwitch;
-        prevIntakeSwitch = currIntakeSwitch;
         prevLowerDelivery = currLowerDelivery;
         prevRaiseDelivery = currRaiseDelivery;
+        prevIntakeForward = currIntakeForward;
+        prevIntakeBackward = currIntakeBackward;
     }
 
     /**

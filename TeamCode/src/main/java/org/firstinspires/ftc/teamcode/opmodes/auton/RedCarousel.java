@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.*;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.NORMAL;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.*;
 import static java.lang.Math.*;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -17,29 +17,26 @@ import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstra
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
+import org.firstinspires.ftc.teamcode.Robot.Constants;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
+import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
-import org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
-import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition;
 
 import java.util.Arrays;
-import java.util.Vector;
 
 /**
  * Created by: barta
  * On: 11/2/2021
  */
 
-@Autonomous(name = "RedCarousel")
+@Autonomous(name = "Red Carousel")
 public class RedCarousel extends LinearOpMode {
 
     Robot r;
@@ -52,7 +49,6 @@ public class RedCarousel extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
-        //TODO: Set Starting Position
         drive.setPoseEstimate(new Pose2d(-36, -65, toRadians(270)));
 
         settings.chooseSettings();
@@ -112,19 +108,25 @@ public class RedCarousel extends LinearOpMode {
         telemetry.addData("Trajectories building complete", "");
         telemetry.update();
 
+        while(!opModeIsActive()) {
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            Thread.sleep(50);
+        }
+
         waitForStart();
 
-        DeliveryArmControl.DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        r.stopCamera();
 
         //TODO: Set up this function to raise the delivery mechanism
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
         r.getDeliveryControl().deliverServoDeliver();
-        Thread.sleep(500);
+        Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
         r.getDeliveryControl().deliverServoStow();
-
         r.getDeliveryControl().moveDelivery(STOWED);
+
         drive.followTrajectory(toCarousel);
         r.carouselCounterClockwise(NORMAL);
         Thread.sleep(1000);
@@ -135,5 +137,8 @@ public class RedCarousel extends LinearOpMode {
         Thread.sleep((long) settings.getChosenParkDelay());
 
         drive.followTrajectory(park);
+        r.getDeliveryControl().moveDelivery(INTAKE);
+
+        Thread.sleep(1000);
     }
 }

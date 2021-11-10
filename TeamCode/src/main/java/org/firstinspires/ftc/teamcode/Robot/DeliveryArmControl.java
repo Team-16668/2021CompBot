@@ -18,6 +18,7 @@ public class DeliveryArmControl {
     int lowCounts;
     int midCounts;
     int extendedCounts;
+    int intakeCounts;
     double power;
 
     DcMotorEx delivery;
@@ -27,11 +28,12 @@ public class DeliveryArmControl {
     DeliveryPositions slidePosition;
     DeliveryServoPositions servoPosition;
 
-    public DeliveryArmControl(int stowedCounts, int lowCounts, int midCounts, int extendedCounts, double power, DcMotorEx delivery, HardwareMap hardwareMap) {
+    public DeliveryArmControl(int stowedCounts, int lowCounts, int midCounts, int extendedCounts, int intakeCounts, double power, DcMotorEx delivery, HardwareMap hardwareMap) {
         this.stowedCounts = stowedCounts;
         this.lowCounts = lowCounts;
         this.midCounts = midCounts;
         this.extendedCounts = extendedCounts;
+        this.intakeCounts = intakeCounts;
         this.power = power;
         this.delivery = delivery;
         deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
@@ -46,7 +48,7 @@ public class DeliveryArmControl {
         servoPosition = STOWED_SERVO;
 
         mode = AUTOMATIC;
-        slidePosition = STOWED;
+        slidePosition = INTAKE;
     }
 
     public void moveDelivery(DeliveryPositions position) {
@@ -64,6 +66,8 @@ public class DeliveryArmControl {
             chosenCounts = midCounts;
         } else if(position == HIGH) {
             chosenCounts = extendedCounts;
+        } else if (position == INTAKE) {
+            chosenCounts =  intakeCounts;
         }
 
         int currentPower = delivery.getCurrentPosition() < stowedCounts ? 1 : -1;
@@ -80,7 +84,7 @@ public class DeliveryArmControl {
         delivery.setMode(RUN_USING_ENCODER);
         //delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         mode = AUTOMATIC;
-        slidePosition = STOWED;
+        slidePosition = INTAKE;
     }
 
     public void manualDeliveryMove(boolean up, boolean down) {
@@ -130,7 +134,7 @@ public class DeliveryArmControl {
     }
 
     public enum DeliveryPositions {
-        STOWED, LOW, MID, HIGH
+        STOWED, LOW, MID, HIGH, INTAKE
     }
 
     public enum DeliveryServoPositions {

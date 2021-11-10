@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
+import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
@@ -20,6 +23,8 @@ public class GameTeleop extends LinearOpMode {
 
 
         waitForStart();
+
+        r.getDeliveryControl().moveDelivery(STOWED);
 
         while (opModeIsActive()) {
             //Loop for main driving code (wheel control)

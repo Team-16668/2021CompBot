@@ -4,10 +4,12 @@ public class Constants {
     //Constants for the intake and delivery
     public static final double DELIVERY_STOWED_POS_SERVO = 1.00;
     public static final double DELIVERY_DELIVER_POS_SERVO = 0.25;
+    public static final int DELIVERY_SERVO_WAIT_TIME = 500;
     public static final double DELIVERY_EXTENDED_COUNTS = 800;
     public static final double DELIVERY_MIDDLE_COUNTS = 600;
     public static final double DELIVERY_LOW_COUNTS = 450;
-    public static final double DELIVERY_STOWED_COUNTS = 0;
+    public static final double DELIVERY_STOWED_COUNTS = 200;
+    public static final double DELIVERY_INTAKE_COUNTS = 0;
 
     public static final double INTAKE_SPEED = 1.00;
     public static final double DELIVERY_SPEED = 0.50;
