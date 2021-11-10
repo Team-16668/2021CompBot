@@ -47,7 +47,8 @@ public class Robot {
     boolean deliveryUpManual, deliveryDownManual;
     boolean prevLowerDelivery = false, currLowerDelivery, prevRaiseDelivery = false, currRaiseDelivery;
     boolean resetEncoder;
-    boolean currIntakeForward, prevIntakeForward = false, currIntakeBackward, prevIntakeBackward = false;
+    boolean intakeForward, intakeBackward;
+    boolean intakeStopped = true;
 
     DeliveryPositions automaticPosition = HIGH;
     CarouselSpeeds carouselSpeed = NORMAL;
@@ -141,8 +142,8 @@ public class Robot {
         currLowerDelivery = gamepad.left_bumper;
         currRaiseDelivery = gamepad.right_bumper;
 
-        currIntakeForward = gamepad.right_trigger > 0;
-        currIntakeBackward = gamepad.left_trigger > 0;
+        intakeForward = gamepad.right_trigger > 0;
+        intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
         if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
@@ -200,12 +201,16 @@ public class Robot {
         }
 
         //Switch the direction of the intake
-        if(currIntakeForward) {
+        if(intakeForward) {
             runIntakeForward();
             getDeliveryControl().moveDelivery(INTAKE);
-        } else if(currIntakeBackward) {
+            intakeStopped = false;
+        } else if(intakeBackward) {
             runIntakeBackwards();
-        } else if(currIntakeForward != prevIntakeForward && currIntakeBackward != prevIntakeBackward){
+            getDeliveryControl().moveDelivery(INTAKE);
+            intakeStopped = false;
+        } else if(!intakeForward && !intakeBackward && !intakeStopped){
+            intakeStopped = true;
             stopIntake();
             getDeliveryControl().moveDelivery(STOWED);
         }
@@ -214,8 +219,6 @@ public class Robot {
         prevServoSwitch = currServoSwitch;
         prevLowerDelivery = currLowerDelivery;
         prevRaiseDelivery = currRaiseDelivery;
-        prevIntakeForward = currIntakeForward;
-        prevIntakeBackward = currIntakeBackward;
     }
 
     /**
