@@ -147,7 +147,7 @@ public class Robot {
         intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
-        if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
+        if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto && getDeliveryControl().getServoPosition() == STOWED_SERVO) {
             if(getDeliveryControl().getSlidePosition() != STOWED) {
                 getDeliveryControl().moveDelivery(STOWED);
                 //runIntakeForward();
