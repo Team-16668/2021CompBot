@@ -22,6 +22,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliverySe
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
@@ -119,7 +120,7 @@ public class Robot {
      *
      * @param gamepad Gamepad (preferably 2)
      */
-    public void armControlLoopTeleOp(Gamepad gamepad) {
+    public void armControlLoopTeleOp(Gamepad gamepad, Telemetry telemetry) {
         /**
          * CONTROLS
          *  A: Automatic toggle between low and high
@@ -193,12 +194,15 @@ public class Robot {
         //Move the servo between the two positions
         if(currServoSwitch && currServoSwitch != prevServoSwitch) {
             if(getDeliveryControl().getSlidePosition() != STOWED && getDeliveryControl().getSlidePosition() != INTAKE) {
-                if (getDeliveryControl().getServoPosition() == STOWED_SERVO)
-                    getDeliveryControl().deliverServoStow();
-                else if (getDeliveryControl().getServoPosition() == DELIVER_SERVO)
+                if (getDeliveryControl().getServoPosition() == STOWED_SERVO) {
                     getDeliveryControl().deliverServoDeliver();
+                }else if (getDeliveryControl().getServoPosition() == DELIVER_SERVO) {
+                    getDeliveryControl().deliverServoStow();
+                }
             }
         }
+
+        telemetry.update();
 
         //Switch the direction of the intake
         if(intakeForward) {

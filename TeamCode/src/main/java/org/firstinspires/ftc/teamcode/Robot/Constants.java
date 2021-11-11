@@ -1,13 +1,16 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
 public class Constants {
     //Constants for the intake and delivery
-    public static final double DELIVERY_STOWED_POS_SERVO = 1.00;
-    public static final double DELIVERY_DELIVER_POS_SERVO = 0.25;
-    public static final int DELIVERY_SERVO_WAIT_TIME = 500;
-    public static final double DELIVERY_EXTENDED_COUNTS = 800;
+    public static double DELIVERY_STOWED_POS_SERVO = 0.89;
+    public static final double DELIVERY_DELIVER_POS_SERVO = 0.1;
+    public static final int DELIVERY_SERVO_WAIT_TIME = 1000;
+    public static final double DELIVERY_EXTENDED_COUNTS = 850;
     public static final double DELIVERY_MIDDLE_COUNTS = 600;
-    public static final double DELIVERY_LOW_COUNTS = 450;
+    public static final double DELIVERY_LOW_COUNTS = 425;
     public static final double DELIVERY_STOWED_COUNTS = 200;
     public static final double DELIVERY_INTAKE_COUNTS = 0;
 

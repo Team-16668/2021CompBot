@@ -30,7 +30,7 @@ public class ArmControlTest extends LinearOpMode {
         r.runIntakeForward();
 
         while(opModeIsActive()) {
-            r.armControlLoopTeleOp(gamepad1);
+            r.armControlLoopTeleOp(gamepad1, telemetry);
 
             telemetry.addData("Mode", r.getDeliveryControl().getMode());
             telemetry.addData("Position", r.getDeliveryControl().getSlidePosition());

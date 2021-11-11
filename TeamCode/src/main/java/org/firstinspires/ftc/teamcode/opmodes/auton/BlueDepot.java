@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
  * On: 11/2/2021
  */
 
-@Autonomous(name = "BlueDepot")
+@Autonomous(name = "Blue Depot")
 public class BlueDepot extends LinearOpMode {
 
     Robot r;

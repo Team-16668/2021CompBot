@@ -81,6 +81,7 @@ public class DeliveryArmControl {
 
     public void resetEncoder() {
         delivery.setMode(STOP_AND_RESET_ENCODER);
+        delivery.setTargetPosition(0);
         delivery.setMode(RUN_USING_ENCODER);
         //delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         mode = AUTOMATIC;
