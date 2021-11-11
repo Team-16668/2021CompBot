@@ -30,6 +30,7 @@ import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.SHIPP
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.*;
 import static java.lang.Math.*;
@@ -42,7 +43,7 @@ import java.util.Arrays;
  * On: 11/2/2021
  */
 
-@Autonomous(name = "RedDepot")
+@Autonomous(name = "Red Depot")
 public class RedDepot extends LinearOpMode {
 
     Robot r;
@@ -55,7 +56,7 @@ public class RedDepot extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
-        drive.setPoseEstimate(new Pose2d(12,-65, 270));
+        drive.setPoseEstimate(new Pose2d(12,-65, toRadians(270)));
 
         settings.chooseSettings();
         alliance = RED;
@@ -72,7 +73,7 @@ public class RedDepot extends LinearOpMode {
          *  - After reading barcode, move to deliver preloaded box on the correct level
          */
         Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(6, -36, toRadians(135)))
+                .lineToLinearHeading(new Pose2d(5, -36, toRadians(335)))
                 .build();
 
 
@@ -111,11 +112,15 @@ public class RedDepot extends LinearOpMode {
          * Move three:
          *  - Park
          */
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(cycle.end());
+        Trajectory intermediatePark = drive.trajectoryBuilder(deliverPreload.end())
+                .lineToLinearHeading(new Pose2d(0, -60, 0))
+                .build();
+
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder. splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
-                    .splineToConstantHeading(new Vector2d(12, -66), 0)
-                    .splineToConstantHeading(new Vector2d(24, -66), 0, new MinVelocityConstraint(
+            parkBuilder
+                    .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
+                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
@@ -123,9 +128,8 @@ public class RedDepot extends LinearOpMode {
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(24, -36), 0);
+                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
-
         }
 
         Trajectory park = parkBuilder.build();
@@ -133,9 +137,23 @@ public class RedDepot extends LinearOpMode {
         telemetry.addData("Trajectories building complete", "");
         telemetry.update();
 
+        while(!opModeIsActive()) {
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            telemetry.update();
+            Thread.sleep(50);
+        }
+
         waitForStart();
 
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+
+        if(deliveryPosition == LOW) {
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-4, -44, toRadians(300)))
+                    .build();
+        }
+
         r.stopCamera();
 
         r.getDeliveryControl().moveDelivery(deliveryPosition);
@@ -144,14 +162,17 @@ public class RedDepot extends LinearOpMode {
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
         r.getDeliveryControl().deliverServoStow();
+        Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 
-        drive.followTrajectory(cycle);
-        r.getDeliveryControl().deliverServoDeliver();
-        Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        r.getDeliveryControl().deliverServoStow();
-        r.getDeliveryControl().moveDelivery(STOWED);
+        //drive.followTrajectory(cycle);
+        //r.getDeliveryControl().deliverServoDeliver();
+        //Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+        //r.getDeliveryControl().deliverServoStow();
+        //Thread.sleep(500);
+        //r.getDeliveryControl().moveDelivery(STOWED);
 
+        drive.followTrajectory(intermediatePark);
         drive.followTrajectory(park);
         r.getDeliveryControl().moveDelivery(INTAKE);
 

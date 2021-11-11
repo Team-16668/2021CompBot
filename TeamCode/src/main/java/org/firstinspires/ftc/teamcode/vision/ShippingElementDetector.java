@@ -32,7 +32,7 @@ public class ShippingElementDetector extends OpenCvPipeline {
 
     //Upper and lower color boundaries for duck
     //TODO: Tune these values
-    public static int hue1 = 40;
+    public static int hue1 = 61;
     public static int saturation1 = 100;
     public static int value1 = 0;
     public static int hue2 = 70;

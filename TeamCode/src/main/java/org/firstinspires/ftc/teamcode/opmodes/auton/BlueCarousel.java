@@ -7,7 +7,6 @@ import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.NORMAL;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.*;
 import static java.lang.Math.*;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -18,27 +17,23 @@ import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstra
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.Constants;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
+import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
-import org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
-import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition;
 
 import java.util.Arrays;
-import java.util.Vector;
 
 /**
  * Created by: barta
- * On: 11/10/2021
+ * On: 11/2/2021
  */
 
 @Autonomous(name = "Blue Carousel")
@@ -54,7 +49,6 @@ public class BlueCarousel extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
-        //TODO: Set Starting Position
         drive.setPoseEstimate(new Pose2d(-36, 65, toRadians(90)));
 
         settings.chooseSettings();
@@ -71,42 +65,52 @@ public class BlueCarousel extends LinearOpMode {
          * Deliver Preload Element
          */
         Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-30, 36, toRadians(225)))
-                .build();
-
-        telemetry.addData("Building trajectories", "delivery preload");
-        telemetry.update();
-
-        /**
-         * Go to the Carousel
-         */
-        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
-                .lineToConstantHeading(new Vector2d(-60, 60))
+                .lineToLinearHeading(new Pose2d(-28, 37, toRadians(145)))
                 .build();
 
         telemetry.addData("Building trajectories", "toCarousel");
         telemetry.update();
 
         /**
+         * Go to the Carousel
+         */
+        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
+                .lineToLinearHeading(new Pose2d(-59, 60, toRadians(135)))
+                .build();
+
+        telemetry.addData("Building trajectories", "park");
+        telemetry.update();
+
+        /**
          * Park
          */
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(toCarousel.end());
+        Trajectory intermediatePark = drive.trajectoryBuilder(toCarousel.end())
+                .lineToLinearHeading(new Pose2d(-24, 48, 0))
+                .build();
+
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
-            parkBuilder. splineToSplineHeading(new Pose2d(-24, 48, Math.toRadians(0)), 0)
-                    .splineToConstantHeading(new Vector2d(12, 66), 0)
-                    .splineToConstantHeading(new Vector2d(24, 66), 0, new MinVelocityConstraint(
+            telemetry.addData("Building trajectories", "park part 1");
+            telemetry.update();
+            parkBuilder
+                    //.splineToSplineHeading(new Pose2d(-24, 48, Math.toRadians(0)), 0)
+                    .splineToConstantHeading(new Vector2d(12, 72), 0)
+                    .splineToConstantHeading(new Vector2d(36, 72), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+
+            telemetry.addData("Building trajectories", "park part 2");
+            telemetry.update();
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(24, 36), 0);
+                parkBuilder.splineToConstantHeading(new Vector2d(36, 36), 0);
             }
 
         } else if (settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder.lineToLinearHeading(new Pose2d(-66, 36));
+            parkBuilder.lineToLinearHeading(new Pose2d(-66, 36, 0));
         }
 
         Trajectory park = parkBuilder.build();
@@ -115,13 +119,16 @@ public class BlueCarousel extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
             telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            telemetry.update();
             Thread.sleep(50);
         }
 
         waitForStart();
 
-        DeliveryArmControl.DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        r.stopCamera();
 
         //TODO: Set up this function to raise the delivery mechanism
         r.getDeliveryControl().moveDelivery(deliveryPosition);
@@ -130,6 +137,7 @@ public class BlueCarousel extends LinearOpMode {
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
         r.getDeliveryControl().deliverServoStow();
+        Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 
         drive.followTrajectory(toCarousel);
@@ -139,8 +147,8 @@ public class BlueCarousel extends LinearOpMode {
         Thread.sleep(1000);
         r.stopCarousel();
 
+        drive.followTrajectory(intermediatePark);
         Thread.sleep((long) settings.getChosenParkDelay());
-
         drive.followTrajectory(park);
         r.getDeliveryControl().moveDelivery(INTAKE);
 

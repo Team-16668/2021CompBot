@@ -65,38 +65,47 @@ public class RedCarousel extends LinearOpMode {
          * Deliver Preload Element
          */
         Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-30, -36, toRadians(225)))
-                .build();
-
-        telemetry.addData("Building trajectories", "delivery preload");
-        telemetry.update();
-
-        /**
-         * Go to the Carousel
-         */
-        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
-                .lineToConstantHeading(new Vector2d(-60, -60))
+                .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
                 .build();
 
         telemetry.addData("Building trajectories", "toCarousel");
         telemetry.update();
 
         /**
+         * Go to the Carousel
+         */
+        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
+                .lineToLinearHeading(new Pose2d(-60, -60, toRadians(225)))
+                .build();
+
+        telemetry.addData("Building trajectories", "park");
+        telemetry.update();
+
+        /**
          * Park
          */
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(toCarousel.end());
+        Trajectory intermediatePark = drive.trajectoryBuilder(toCarousel.end())
+                .lineToLinearHeading( new Pose2d(-24, -48, 0))
+                .build();
+
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
-            parkBuilder. splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
+            telemetry.addData("Building trajectories", "park part 1");
+            telemetry.update();
+            parkBuilder.splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
                     .splineToConstantHeading(new Vector2d(12, -66), 0)
-                    .splineToConstantHeading(new Vector2d(24, -66), 0, new MinVelocityConstraint(
+                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+
+            telemetry.addData("Building trajectories", "park part 2");
+            telemetry.update();
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(24, -36), 0);
+                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
 
         } else if (settings.getParkType() == SHIPPING_AREA) {
@@ -109,7 +118,9 @@ public class RedCarousel extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
             telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            telemetry.update();
             Thread.sleep(50);
         }
 
@@ -125,6 +136,7 @@ public class RedCarousel extends LinearOpMode {
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
         r.getDeliveryControl().deliverServoStow();
+        Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 
         drive.followTrajectory(toCarousel);
@@ -134,8 +146,8 @@ public class RedCarousel extends LinearOpMode {
         Thread.sleep(1000);
         r.stopCarousel();
 
+        drive.followTrajectory(intermediatePark);
         Thread.sleep((long) settings.getChosenParkDelay());
-
         drive.followTrajectory(park);
         r.getDeliveryControl().moveDelivery(INTAKE);
 
