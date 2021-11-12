@@ -95,7 +95,7 @@ public class BlueCarousel extends LinearOpMode {
             parkBuilder
                     //.splineToSplineHeading(new Pose2d(-24, 48, Math.toRadians(0)), 0)
                     .splineToConstantHeading(new Vector2d(12, 72), 0)
-                    .splineToConstantHeading(new Vector2d(36, 72), 0, new MinVelocityConstraint(
+                    .splineToConstantHeading(new Vector2d(38, 72), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
@@ -106,7 +106,7 @@ public class BlueCarousel extends LinearOpMode {
             telemetry.addData("Building trajectories", "park part 2");
             telemetry.update();
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(36, 36), 0);
+                parkBuilder.splineToConstantHeading(new Vector2d(38, 36), 0);
             }
 
         } else if (settings.getParkType() == SHIPPING_AREA) {
