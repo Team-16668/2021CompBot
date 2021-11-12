@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Constants {
     //Constants for the intake and delivery
-    public static double DELIVERY_STOWED_POS_SERVO = 0.89;
+    public static final double DELIVERY_STOWED_POS_SERVO = 0.91;
     public static final double DELIVERY_DELIVER_POS_SERVO = 0.1;
     public static final int DELIVERY_SERVO_WAIT_TIME = 1000;
     public static final double DELIVERY_EXTENDED_COUNTS = 850;

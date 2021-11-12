@@ -4,9 +4,11 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
@@ -59,6 +61,8 @@ public class Robot {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
         deliveryMotor = hardwareMap.get(DcMotorEx.class, DELIVERY_MOTOR);
         carouselMotor = hardwareMap.get(DcMotorEx.class, CAROUSEL_MOTOR);
+
+        deliveryMotor.setDirection(REVERSE);
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -243,7 +247,7 @@ public class Robot {
             if (alliance == RED) {
                 carouselCounterClockwise(carouselSpeed);
             } else if (alliance == BLUE) {
-                carouselCounterClockwise(carouselSpeed);
+                carouselClockwise(carouselSpeed);
             }
         }else {
             if(getCarouselMotor().getPower() != 0) {

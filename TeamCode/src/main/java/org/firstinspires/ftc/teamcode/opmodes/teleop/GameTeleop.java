@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
+import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -35,6 +36,9 @@ public class GameTeleop extends LinearOpMode {
 
             //Loop for the control of the delivery arm and intake.
             r.armControlLoopTeleOp(gamepad2, telemetry);
+
+            telemetry.addData("Alliance ", alliance.name());
+            telemetry.update();
 
         }
     }

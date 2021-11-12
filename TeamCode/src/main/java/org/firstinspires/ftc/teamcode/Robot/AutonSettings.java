@@ -33,11 +33,11 @@ public class AutonSettings {
             currentB = gamepad.b;
 
             if(currentUp && currentUp != prevUp) {
-                if(chosenParkDelay <= maximumParkDelay + 1) {
+                if(chosenParkDelay < maximumParkDelay) {
                     chosenParkDelay++;
                 }
             }else if (currentDown && currentDown != prevDown) {
-                if(chosenParkDelay >= minimumParkDelay - 1) {
+                if(chosenParkDelay > minimumParkDelay) {
                     chosenParkDelay--;
                 }
             }
