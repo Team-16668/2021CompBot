@@ -92,7 +92,8 @@ public class RedCarousel extends LinearOpMode {
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
             telemetry.addData("Building trajectories", "park part 1");
             telemetry.update();
-            parkBuilder.splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
+            parkBuilder
+                    //.splineToSplineHeading(new Pose2d(-24, -48, Math.toRadians(0)), 0)
                     .splineToConstantHeading(new Vector2d(12, -66), 0)
                     .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
