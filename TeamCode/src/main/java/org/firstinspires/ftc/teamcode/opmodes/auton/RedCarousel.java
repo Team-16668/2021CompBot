@@ -130,7 +130,6 @@ public class RedCarousel extends LinearOpMode {
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
         r.stopCamera();
 
-        //TODO: Set up this function to raise the delivery mechanism
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
