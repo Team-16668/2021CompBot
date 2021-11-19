@@ -1,12 +1,21 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
+import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.HSV;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INPUT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INRANGE;
 
+import static java.lang.Math.*;
+
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -36,10 +45,59 @@ public class DuckDetector extends OpenCvPipeline {
 
     double centerX;
     double centerY;
+    Pose2d robotPose = new Pose2d();
+    Pose2d correctedRobotPose = new Pose2d();
+    Vector2d relativeCameraPoint;
+    double distanceFromCenter;
+    double cameraAngle;
+    Pose2d correctedCameraPose;
+    Pose2d fieldCameraPose = new Pose2d();
+    double yLine;
+
+    boolean duckDetected;
+
+    Vector2d goToPoint;
 
     private ShippingElementDetector.Mats activeMat = INPUT;
 
-    public DuckDetector() {
+    Telemetry telemetry;
+
+
+    /**
+     *
+     * @param relativeCameraPoint the relative point of the camera on the robot based on the following diagram
+     *                                         (y+)
+     *                                        |
+     *                                        |
+     *                 ---------------------------------------------
+     *                 |                      |                    |
+     *                 |                      |                    |
+     *                 |                      |                    |
+     *                 |                      |                    |  (Front of  bot)
+     *-----------------|----------------------|--------------------|--------------------- (x+)
+     *                 |                      |                    |
+     *                 |                      |                    |
+     *                 |                      |                    |
+     *                 |                      |                    |
+     *                 ---------------------------------------------
+     *                                        |
+     *                                        |
+     *                                        |
+
+     * @param yLine the y position that the robot will ultimately move towards
+     */
+    public DuckDetector(Vector2d relativeCameraPoint, double yLine, Telemetry telemetry) {
+        this.relativeCameraPoint = relativeCameraPoint;
+        this.yLine = yLine;
+
+        goToPoint = new Vector2d(robotPose.getX() + relativeCameraPoint.getX(), yLine);
+
+        //Get the distance from the center of the robot
+        distanceFromCenter = sqrt(pow(relativeCameraPoint.getX(), 2) + pow(relativeCameraPoint.getY(), 2));
+        //Get the angle of the center to the camera (using atan2)
+        cameraAngle = atan2(relativeCameraPoint.getY(), relativeCameraPoint.getX());
+
+        this.telemetry = telemetry;
     }
 
     @Override
@@ -80,9 +138,92 @@ public class DuckDetector extends OpenCvPipeline {
             boundingRect = null;
         }
 
+        Point duckCenter = new Point(boundingRect.x - (0.5 * boundingRect.height), boundingRect.y - (0.5 * boundingRect.width));
+        Imgproc.drawMarker(getActiveMat(), duckCenter, new Scalar(255, 0, 0));
+
+        //TODO: MAFFF
+        if(boundingRect != null) {
+            duckDetected = true;
+
+            Point imageCenter = new Point(getActiveMat().width(), centerY);
+
+
+            Point correctedDuckCenter = new Point(
+                    -(duckCenter.y - imageCenter.y),
+                    imageCenter.x - duckCenter.x
+            );
+
+            double rawAngleToDuck = atan2(correctedDuckCenter.y, correctedDuckCenter.x);
+            double correctedAngleToDuck = correctedDuckCenter.x > 0 ? rawAngleToDuck - toRadians(90) : -rawAngleToDuck;
+
+            //TODO: Correct this to make sure that "cameraPose" is an actual pose on the field
+            double xOffset = abs(yLine - (fieldCameraPose.getY())) * tan(abs(correctedAngleToDuck));
+
+            //Doing logic to determine how the value should be added assuming pointing towards red alliance wall
+            xOffset *= correctedAngleToDuck > 0 ? 1 : -1;
+
+            //Adjust if alliance is blue
+            xOffset *= alliance == BLUE ? -1 : 1;
+
+            goToPoint = new Vector2d(goToPoint.getX() + xOffset, goToPoint.getY());
+
+            //TODO: Add some telemetry here
+            telemetry
+        } else {
+            duckDetected = false;
+        }
+
+        telemetry.addData("Duck detected", duckDetected);
+        telemetry.addData("Corrected robot pose", "(" + correctedRobotPose.getX() + ", " + correctedRobotPose.getY() + ", " + correctedRobotPose.getHeading());
+        telemetry.addData("Corrected robot pose", "(" + correctedCameraPose.getX() + ", " + correctedCameraPose.getY() + ", " + correctedCameraPose.getHeading());
+        telemetry.addData("Field camera pose", "(" + fieldCameraPose.getX() + ", " + fieldCameraPose.getY() + ", " + fieldCameraPose.getHeading());
+        telemetry.addData("goToPoint", "(" + goToPoint.getX() + ", " + goToPoint.getY() + ")");
+        telemetry.update();
 
 
         return input;
+    }
+
+    public void setRobotPose(Pose2d robotPose) {
+        this.robotPose = robotPose;
+        //Corrected robot pose is the pose of the robot on a normal coordiante plane
+        //  (looking from the top with the audience in the third and fourth quadrants)
+        this.correctedRobotPose = new Pose2d(- robotPose.getY(), robotPose.getX(), robotPose.getHeading() + toRadians(90));
+        calculateCameraPose();
+        fieldCameraPose = new Pose2d(correctedCameraPose.getY(), -correctedCameraPose.getX(), wrapAngle(correctedRobotPose.getHeading() - toRadians(90)));
+    }
+
+    public void calculateCameraPose() {
+        double angle = wrapAngle(correctedRobotPose.getHeading() - cameraAngle);
+
+        correctedCameraPose = new Pose2d(
+                cos(angle) * distanceFromCenter,
+                sin(angle) * distanceFromCenter,
+                correctedRobotPose.getHeading()
+        );
+    }
+
+    public double wrapAngle(double angle) {
+        while (angle < toRadians(0) || angle > toRadians(360)) {
+            if (angle < toRadians(0)) {
+                angle += toRadians(360);
+            } else if (angle > toRadians(360)) {
+                angle -= toRadians(360);
+            }
+        }
+        return angle;
+    }
+
+    public boolean isDuckDetected() {
+        return duckDetected;
+    }
+
+    public Vector2d getGoToPoint() {
+        return goToPoint;
+    }
+
+    public Vector2d getRelativeCameraPoint() {
+        return relativeCameraPoint;
     }
 
     private Mat getActiveMat(){

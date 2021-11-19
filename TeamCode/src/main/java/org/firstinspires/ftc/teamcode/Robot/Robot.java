@@ -72,8 +72,6 @@ public class Robot {
 
         dashboard = FtcDashboard.getInstance();
 
-        //TODO: Reverse any needed motors here
-
         if(initializeVision) {
             //Webcam initialization
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -254,6 +252,25 @@ public class Robot {
                 stopCarousel();
             }
         }
+    }
+
+    public void moveUntilElement(SampleMecanumDrive drive, double power) throws InterruptedException {
+        drive.setWeightedDrivePower(new Pose2d(
+                power,
+                0,
+                0
+        ));
+
+        //TODO: make this loop end when we detect an element.
+
+        boolean element = false;
+
+        while(element) {
+            drive.update();
+            Thread.sleep(50);
+        }
+
+        drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
     }
 
     public void lowerDeliveryArm() {
