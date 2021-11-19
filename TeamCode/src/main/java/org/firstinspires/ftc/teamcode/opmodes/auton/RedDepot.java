@@ -80,19 +80,22 @@ public class RedDepot extends LinearOpMode {
          *  - Move to shipping area and cycle
          */
 
+        Trajectory toCycle = drive.trajectoryBuilder(deliverPreload.end())
+                .lineToLinearHeading(new Pose2d(12, -66, toRadians(0)))
+                .build();
+
         List<Trajectory> cycles = new ArrayList<>();
 
         //TODO: Tune the positions these move to
-        List<Pose2d> cyclePickupPoints = new ArrayList<Pose2d>() {{
-            add(new Pose2d(42, -66, toRadians(0)));
-            add(new Pose2d(42, -62, toRadians(0)));
-            add(new Pose2d(42, -58, toRadians(0)));
+        List<Vector2d> cyclePickupPoints = new ArrayList<Vector2d>() {{
+            add(new Vector2d(42, -66));
+            add(new Vector2d(42, -62));
+            add(new Vector2d(42, -58));
         }};
 
-        for(Pose2d pickup : cyclePickupPoints) {
-            cycles.add(drive.trajectoryBuilder(deliverPreload.end())
-                    .splineToSplineHeading(new Pose2d(12, -66, toRadians(0)), 0)
-                    .addTemporalMarker(5, () -> {
+        for(Vector2d pickup : cyclePickupPoints) {
+            cycles.add(drive.trajectoryBuilder(toCycle.end())
+                    .addDisplacementMarker(() -> {
                         r.runIntakeForward();
                         r.getDeliveryControl().moveDelivery(INTAKE);
                     })
@@ -103,14 +106,14 @@ public class RedDepot extends LinearOpMode {
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                    .splineToSplineHeading(pickup, 0, new MinVelocityConstraint(
+                    .splineToConstantHeading(pickup, 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                    .splineToSplineHeading(new Pose2d(12, -66), 0, new MinVelocityConstraint(
+                    .splineToConstantHeading(new Vector2d(12, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
@@ -121,15 +124,19 @@ public class RedDepot extends LinearOpMode {
                         r.stopIntake();
                         r.getDeliveryControl().moveDelivery(HIGH);
                     })
-                    .splineToSplineHeading(new Pose2d(5, -36, toRadians(335)), toRadians(335))
                     .build());
         }
+
+        Trajectory toHub = drive.trajectoryBuilder(cycles.get(0).end())
+                .lineToLinearHeading(new Pose2d(2, -38, toRadians(335)))
+                .build();
+
 
         /**
          * Move three:
          *  - Park
          */
-        Trajectory intermediatePark = drive.trajectoryBuilder(deliverPreload.end())
+        Trajectory intermediatePark = drive.trajectoryBuilder(toHub.end())
                 .lineToLinearHeading(new Pose2d(0, -60, 0))
                 .build();
 
@@ -185,7 +192,9 @@ public class RedDepot extends LinearOpMode {
         r.getDeliveryControl().moveDelivery(STOWED);
 
         for(Trajectory cycle : cycles) {
+            drive.followTrajectory(toCycle);
             drive.followTrajectory(cycle);
+            drive.followTrajectory(toHub);
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
             r.getDeliveryControl().deliverServoStow();
