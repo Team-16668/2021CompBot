@@ -130,7 +130,6 @@ public class BlueCarousel extends LinearOpMode {
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
         r.stopCamera();
 
-        //TODO: Set up this function to raise the delivery mechanism
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
@@ -142,9 +141,9 @@ public class BlueCarousel extends LinearOpMode {
 
         drive.followTrajectory(toCarousel);
         r.carouselClockwise(NORMAL);
-        Thread.sleep(1000);
-        r.carouselClockwise(FAST);
-        Thread.sleep(1000);
+        Thread.sleep(4000);
+//        r.carouselClockwise(FAST);
+//        Thread.sleep(1000);
         r.stopCarousel();
 
         drive.followTrajectory(intermediatePark);
