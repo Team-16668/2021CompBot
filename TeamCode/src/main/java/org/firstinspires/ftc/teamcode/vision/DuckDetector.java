@@ -141,7 +141,6 @@ public class DuckDetector extends OpenCvPipeline {
         Point duckCenter = new Point(boundingRect.x - (0.5 * boundingRect.height), boundingRect.y - (0.5 * boundingRect.width));
         Imgproc.drawMarker(getActiveMat(), duckCenter, new Scalar(255, 0, 0));
 
-        //TODO: MAFFF
         if(boundingRect != null) {
             duckDetected = true;
 
@@ -156,7 +155,6 @@ public class DuckDetector extends OpenCvPipeline {
             double rawAngleToDuck = atan2(correctedDuckCenter.y, correctedDuckCenter.x);
             double correctedAngleToDuck = correctedDuckCenter.x > 0 ? rawAngleToDuck - toRadians(90) : -rawAngleToDuck;
 
-            //TODO: Correct this to make sure that "cameraPose" is an actual pose on the field
             double xOffset = abs(yLine - (fieldCameraPose.getY())) * tan(abs(correctedAngleToDuck));
 
             //Doing logic to determine how the value should be added assuming pointing towards red alliance wall
@@ -167,8 +165,9 @@ public class DuckDetector extends OpenCvPipeline {
 
             goToPoint = new Vector2d(goToPoint.getX() + xOffset, goToPoint.getY());
 
-            //TODO: Add some telemetry here
-            telemetry
+            telemetry.addData("rawAngleToDuck", rawAngleToDuck);
+            telemetry.addData("correctedAngleToDuck", correctedAngleToDuck);
+            telemetry.addData("xOffset", xOffset);
         } else {
             duckDetected = false;
         }
