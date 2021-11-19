@@ -89,7 +89,7 @@ public class RedDepot extends LinearOpMode {
         //TODO: Tune the positions these move to
         List<Vector2d> cyclePickupPoints = new ArrayList<Vector2d>() {{
             add(new Vector2d(42, -66));
-            add(new Vector2d(42, -62));
+            add(new Vector2d(44, -66));
             add(new Vector2d(42, -58));
         }};
 
@@ -147,7 +147,7 @@ public class RedDepot extends LinearOpMode {
                     .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                            new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));

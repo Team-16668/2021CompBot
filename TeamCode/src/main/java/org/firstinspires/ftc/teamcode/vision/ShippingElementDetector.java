@@ -21,8 +21,6 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.LEFT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.MIDDLE;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.NONE;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.BarcodePosition.RIGHT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.HSV;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INPUT;
 import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats.INRANGE;
@@ -31,7 +29,6 @@ import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.Mats
 public class ShippingElementDetector extends OpenCvPipeline {
 
     //Upper and lower color boundaries for duck
-    //TODO: Tune these values
     public static int hue1 = 61;
     public static int saturation1 = 100;
     public static int value1 = 0;
@@ -41,16 +38,15 @@ public class ShippingElementDetector extends OpenCvPipeline {
     public Scalar lowerB = new Scalar(hue1, saturation1, value1);
     public Scalar upperB = new Scalar(hue2, saturation2, value2);
     //Lines for the left, middle, and right barcodes
-    //TODO: Tune these values also
     public double leftBoundary = 200;
     public double rightBoundary = 100;
 
     double centerX;
     double centerY;
 
-    private Mat NormalImage;
+    private Mat normalImage;
     private Mat HSVMat;
-    private Mat InRangeMat;
+    private Mat inRangeMat;
     private List<MatOfPoint> contours;
     private MatOfPoint biggestContour;
     private Rect boundingRect;
@@ -59,9 +55,9 @@ public class ShippingElementDetector extends OpenCvPipeline {
     private BarcodePosition barcodePosition = BarcodePosition.LEFT;
 
     public ShippingElementDetector() {
-        NormalImage = new Mat();
+        normalImage = new Mat();
         HSVMat = new Mat();
-        InRangeMat = new Mat();
+        inRangeMat = new Mat();
         contours = new ArrayList<>();
         biggestContour = new MatOfPoint();
     }
@@ -81,19 +77,17 @@ public class ShippingElementDetector extends OpenCvPipeline {
         lowerB = new Scalar(hue1, saturation1, value1);
         upperB = new Scalar(hue2, saturation2, value2);
 
-        NormalImage = input;
+        normalImage = input;
         //Convert to HSV, then to binary Mat, then find the contours of everyhting
         //that's yellow enough in the field of view
-        Imgproc.cvtColor(NormalImage, HSVMat, Imgproc.COLOR_RGB2HSV);
-        Core.inRange(HSVMat, lowerB, upperB, InRangeMat);
+        Imgproc.cvtColor(normalImage, HSVMat, Imgproc.COLOR_RGB2HSV);
+        Core.inRange(HSVMat, lowerB, upperB, inRangeMat);
 
         contours.clear();
 
-        Imgproc.findContours(InRangeMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(inRangeMat, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
 
         Imgproc.drawContours(getActiveMat(), contours, -1, new Scalar(255, 255, 0));
-
-        //TODO: Eliminate contours found outside of the realistic range (if necessary). This is from a vertical or even horizontal perspective (probably vertical)
 
         //Filter the biggest contour
         if(!contours.isEmpty()) {
@@ -134,12 +128,12 @@ public class ShippingElementDetector extends OpenCvPipeline {
     private Mat getActiveMat(){
         //This just returns the Mat variable that corresponds to each Enum state in Mats
         if(activeMat == INPUT) {
-            return NormalImage;
+            return normalImage;
         } else if(activeMat == Mats.HSV) {
             return HSVMat;
         } else {
             //activeMat is INRANGE
-            return InRangeMat;
+            return inRangeMat;
         }
     }
 
