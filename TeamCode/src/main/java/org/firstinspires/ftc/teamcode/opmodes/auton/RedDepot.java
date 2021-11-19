@@ -8,18 +8,15 @@ import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstra
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
+import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Robot.Alliance;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
-import org.firstinspires.ftc.teamcode.Robot.Constants;
-import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
@@ -32,11 +29,11 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.*;
 import static java.lang.Math.*;
-import static java.lang.Math.toRadians;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by: barta
@@ -63,6 +60,7 @@ public class RedDepot extends LinearOpMode {
 
         telemetry.addData("Status", "Building trajectories");
         telemetry.update();
+        Timing.Timer timer = new Timing.Timer(30);
 
         /**
          * Build Trajectories here
@@ -81,32 +79,51 @@ public class RedDepot extends LinearOpMode {
          * Move two:
          *  - Move to shipping area and cycle
          */
-        Trajectory cycle = drive.trajectoryBuilder(deliverPreload.end())
-                .splineToSplineHeading(new Pose2d(12, -66, toRadians(0)), 0)
-                .addTemporalMarker(5, () -> {
-                    r.runIntakeForward();
-                    r.getDeliveryControl().moveDelivery(INTAKE);
-                })
-                .splineToSplineHeading(new Pose2d(42, -66, toRadians(0)), 0, new MinVelocityConstraint(
-                                Arrays.asList(
-                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                        new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                )
-                        ),
-                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .splineToSplineHeading(new Pose2d(12, -66), 0, new MinVelocityConstraint(
-                                Arrays.asList(
-                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                        new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                )
-                        ),
-                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .addDisplacementMarker(() -> {
-                    r.stopIntake();
-                    r.getDeliveryControl().moveDelivery(HIGH);
-                })
-                .splineToSplineHeading(new Pose2d(6, -36, toRadians(135)), toRadians(135))
-                .build();
+
+        List<Trajectory> cycles = new ArrayList<>();
+
+        //TODO: Tune the positions these move to
+        List<Pose2d> cyclePickupPoints = new ArrayList<Pose2d>() {{
+            add(new Pose2d(42, -66, toRadians(0)));
+            add(new Pose2d(42, -62, toRadians(0)));
+            add(new Pose2d(42, -58, toRadians(0)));
+        }};
+
+        for(Pose2d pickup : cyclePickupPoints) {
+            cycles.add(drive.trajectoryBuilder(deliverPreload.end())
+                    .splineToSplineHeading(new Pose2d(12, -66, toRadians(0)), 0)
+                    .addTemporalMarker(5, () -> {
+                        r.runIntakeForward();
+                        r.getDeliveryControl().moveDelivery(INTAKE);
+                    })
+                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                    .splineToSplineHeading(pickup, 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                    .splineToSplineHeading(new Pose2d(12, -66), 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                    .addDisplacementMarker(() -> {
+                        r.stopIntake();
+                        r.getDeliveryControl().moveDelivery(HIGH);
+                    })
+                    .splineToSplineHeading(new Pose2d(5, -36, toRadians(335)), toRadians(335))
+                    .build());
+        }
 
         /**
          * Move three:
@@ -146,6 +163,8 @@ public class RedDepot extends LinearOpMode {
 
         waitForStart();
 
+        timer.start();
+
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
@@ -165,12 +184,20 @@ public class RedDepot extends LinearOpMode {
         Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 
-        //drive.followTrajectory(cycle);
-        //r.getDeliveryControl().deliverServoDeliver();
-        //Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        //r.getDeliveryControl().deliverServoStow();
-        //Thread.sleep(500);
-        //r.getDeliveryControl().moveDelivery(STOWED);
+        for(Trajectory cycle : cycles) {
+            drive.followTrajectory(cycle);
+            r.getDeliveryControl().deliverServoDeliver();
+            Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+            r.getDeliveryControl().deliverServoStow();
+            Thread.sleep(500);
+            r.getDeliveryControl().moveDelivery(STOWED);
+
+            //If there's not enough time yet, just break and don't continue any farther.
+            //TODO: Tune the time needed to park here
+            if(timer.remainingTime() < 10) {
+                break;
+            }
+        }
 
         drive.followTrajectory(intermediatePark);
         drive.followTrajectory(park);
