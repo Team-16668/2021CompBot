@@ -35,4 +35,6 @@ public class Constants {
     public static final String CAROUSEL_MOTOR = "carousel_motor";
     public static final String DELIVERY_SERVO = "delivery_servo";
     public static final String IMU = "imu";
+    public static final String BACK_CAM = "back_webcam";
+    public static final String FRONT_CAM = "front_webcam";
 }

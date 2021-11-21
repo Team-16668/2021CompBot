@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
-@TeleOp(name="Vision Test")
-public class VisionTest extends LinearOpMode {
+@TeleOp(name="Barcode Test")
+public class BarcodeTest extends LinearOpMode {
 
     Robot r;
 
@@ -17,11 +17,11 @@ public class VisionTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         r = new Robot(hardwareMap, true, new ShippingElementDetector());
 
-        r.getDashboard().startCameraStream(r.getWebcam(), 30);
+        r.getDashboard().startCameraStream(r.getBack_webcam(), 30);
 
         while(!opModeIsActive()) {
-            telemetry.addData("Position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
-            telemetry.addData("Active Mat", ((ShippingElementDetector) r.getPipeline()).getMat());
+            telemetry.addData("Position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
+            telemetry.addData("Active Mat", ((ShippingElementDetector) r.getBack_pipeline()).getMat());
             telemetry.update();
         }
 
@@ -29,13 +29,13 @@ public class VisionTest extends LinearOpMode {
 
         while(opModeIsActive()) {
 
-            telemetry.addData("Position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
-            telemetry.addData("Active Mat", ((ShippingElementDetector) r.getPipeline()).getMat());
+            telemetry.addData("Position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
+            telemetry.addData("Active Mat", ((ShippingElementDetector) r.getBack_pipeline()).getMat());
             telemetry.update();
 
             currentA = gamepad1.a;
             if(currentA && currentA != prevA) {
-                ((ShippingElementDetector) r.getPipeline()).loopMats();
+                ((ShippingElementDetector) r.getBack_pipeline()).loopMats();
             }
             prevA = currentA;
         }

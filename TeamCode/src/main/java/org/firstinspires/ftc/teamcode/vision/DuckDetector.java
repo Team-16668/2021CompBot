@@ -26,10 +26,10 @@ import java.util.List;
 
 public class DuckDetector extends OpenCvPipeline {
 
-    public static int hue1 = 61;
+    public static int hue1 = 20;
     public static int saturation1 = 100;
     public static int value1 = 0;
-    public static int hue2 = 70;
+    public static int hue2 = 40;
     public static int saturation2 = 255;
     public static int value2 = 255;
     public Scalar lowerB = new Scalar(hue1, saturation1, value1);

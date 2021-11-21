@@ -11,19 +11,14 @@ import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationCon
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Robot.Alliance;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
-import org.firstinspires.ftc.teamcode.Robot.Constants;
-import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
-import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.OFFSET;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.REGULAR;
@@ -33,8 +28,6 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
-import static org.firstinspires.ftc.teamcode.vision.ShippingElementDetector.*;
-import static java.lang.Math.*;
 import static java.lang.Math.toRadians;
 
 import java.util.Arrays;
@@ -139,15 +132,15 @@ public class BlueDepot extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition().name());
             telemetry.update();
             Thread.sleep(50);
         }
 
         waitForStart();
 
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())

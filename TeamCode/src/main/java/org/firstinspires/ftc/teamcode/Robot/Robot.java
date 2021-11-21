@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -40,8 +39,10 @@ public class Robot {
     DcMotorEx deliveryMotor;
     DcMotorEx carouselMotor;
 
-    OpenCvWebcam webcam;
-    OpenCvPipeline pipeline;
+    OpenCvWebcam back_webcam;
+    OpenCvPipeline back_pipeline;
+    OpenCvWebcam front_webcam;
+    OpenCvPipeline front_pipeline;
     DeliveryArmControl delivery;
     IntakeDirections intakeDirection;
     FtcDashboard dashboard;
@@ -57,7 +58,7 @@ public class Robot {
     CarouselSpeeds carouselSpeed = NORMAL;
 
 
-    public Robot(HardwareMap hardwareMap, boolean initializeVision, OpenCvPipeline visionPipeline) {
+    public Robot(HardwareMap hardwareMap, boolean initializeBackVision, OpenCvPipeline backPipeline, boolean initializeFrontVision, OpenCvPipeline frontPipeline) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
         deliveryMotor = hardwareMap.get(DcMotorEx.class, DELIVERY_MOTOR);
         carouselMotor = hardwareMap.get(DcMotorEx.class, CAROUSEL_MOTOR);
@@ -72,23 +73,35 @@ public class Robot {
 
         dashboard = FtcDashboard.getInstance();
 
-        if(initializeVision) {
+        if(initializeBackVision) {
             //Webcam initialization
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
-            webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
-            pipeline = visionPipeline;
+            back_webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, BACK_CAM), cameraMonitorViewId);
+            back_pipeline = backPipeline;
 
-            webcam.setPipeline(pipeline);
+            back_webcam.setPipeline(back_pipeline);
 
-            webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            back_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                 @Override
-                public void onOpened() { webcam.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_LEFT); }
+                public void onOpened() { back_webcam.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_LEFT); }
                 @Override
                 public void onError(int errorCode) { }});
 
         }
+        if(initializeFrontVision) {
+            //Webcam initialization
+            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
+            front_webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, FRONT_CAM), cameraMonitorViewId);
+            front_pipeline = frontPipeline;
+
+            front_webcam.setPipeline(front_pipeline);
+        }
+    }
+
+    public Robot(HardwareMap hardwareMap, boolean initializeBackVision, OpenCvPipeline backPipeline) {
+        this(hardwareMap, initializeBackVision, backPipeline, false, null);
     }
 
     /**
@@ -330,12 +343,12 @@ public class Robot {
         motor.setVelocity(RPM / 60 * ticks);
     }
 
-    public OpenCvPipeline getPipeline() {
-        return pipeline;
+    public OpenCvPipeline getBack_pipeline() {
+        return back_pipeline;
     }
 
     public void stopCamera() {
-        webcam.stopStreaming();
+        back_webcam.stopStreaming();
     }
 
     public DcMotorEx getIntakeMotor() {
@@ -346,8 +359,16 @@ public class Robot {
         return carouselMotor;
     }
 
-    public OpenCvWebcam getWebcam() {
-        return webcam;
+    public OpenCvWebcam getBack_webcam() {
+        return back_webcam;
+    }
+
+    public OpenCvWebcam getFront_webcam() {
+        return front_webcam;
+    }
+
+    public OpenCvPipeline getFront_pipeline() {
+        return front_pipeline;
     }
 
     public DeliveryArmControl getDeliveryControl() {

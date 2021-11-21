@@ -141,8 +141,8 @@ public class RedDepot extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getPipeline()).getBarcodePosition().name());
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition().name());
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition().name());
             telemetry.update();
             Thread.sleep(50);
         }
@@ -151,7 +151,7 @@ public class RedDepot extends LinearOpMode {
 
         timer.start();
 
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getPipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
