@@ -220,11 +220,11 @@ public class Robot {
         telemetry.update();
 
         //Switch the direction of the intake
-        if(intakeForward) {
+        if(intakeForward && getDeliveryControl().getServoPosition() == STOWED_SERVO) {
             runIntakeForward();
             getDeliveryControl().moveDelivery(INTAKE);
             intakeStopped = false;
-        } else if(intakeBackward) {
+        } else if(intakeBackward && getDeliveryControl().getServoPosition() == STOWED_SERVO) {
             runIntakeBackwards();
             getDeliveryControl().moveDelivery(INTAKE);
             intakeStopped = false;
