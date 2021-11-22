@@ -37,6 +37,8 @@ import java.util.Arrays;
  * On: 11/12/2021
  */
 
+
+//TODO: Properly update this to use the different route we're running for RedDepot
 @Autonomous(name = "Blue Depot")
 public class BlueDepot extends LinearOpMode {
 

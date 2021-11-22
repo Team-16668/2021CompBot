@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Robot;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -23,6 +24,9 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliverySe
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
@@ -32,6 +36,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
+
+import java.util.Vector;
 
 public class Robot {
 
@@ -267,23 +273,41 @@ public class Robot {
         }
     }
 
-    public void moveUntilElement(SampleMecanumDrive drive, double power) throws InterruptedException {
+    public boolean moveUntilElement(SampleMecanumDrive drive, double power, double maximumDistance) throws InterruptedException {
+
+        Pose2d startPose = drive.getPoseEstimate();
+
         drive.setWeightedDrivePower(new Pose2d(
                 power,
                 0,
                 0
         ));
 
-        //TODO: make this loop end when we detect an element.
+        //TODO: Make this loop end when we detect an element. Use distance sensor
+        //TODO: Make the robot skip to parking if this fails
+        //TODO: Test stopping if we've moved beyond the maximum distance
 
         boolean element = false;
+        boolean movedTooFar = false;
 
-        while(element) {
+        while(!element && !movedTooFar) {
             drive.update();
             Thread.sleep(50);
+
+            movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
         }
 
         drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
+
+        return true;
+    }
+
+    double getDistance(Pose2d pose1, Pose2d pose2) {
+        //return sqrt(pow(pose1.getX() + pose2.getX(), 2) + pow(pose1.getY() + pose2.getY(), 2));
+        return getDistance(new Vector2d(pose1.getX(), pose1.getY()), new Vector2d(pose2.getX(), pose2.getY()));
+    }
+    double getDistance(Vector2d vector1, Vector2d vector2) {
+        return sqrt(pow(vector1.getX() + vector2.getX(), 2) + pow(vector1.getY() + vector2.getY(), 2));
     }
 
     public void lowerDeliveryArm() {

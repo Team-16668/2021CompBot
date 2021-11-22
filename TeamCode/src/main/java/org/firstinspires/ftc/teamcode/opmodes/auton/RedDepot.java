@@ -80,13 +80,12 @@ public class RedDepot extends LinearOpMode {
          *  - Move to shipping area and cycle
          */
 
-        Trajectory toCycle = drive.trajectoryBuilder(deliverPreload.end())
+        Trajectory toWarehouse = drive.trajectoryBuilder(deliverPreload.end())
                 .lineToLinearHeading(new Pose2d(12, -66, toRadians(0)))
                 .build();
 
-        List<Trajectory> cycles = new ArrayList<>();
 
-        cycles.add(drive.trajectoryBuilder(toCycle.end())
+        Trajectory freightPickup = drive.trajectoryBuilder(toWarehouse.end())
                 .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                 Arrays.asList(
                                         new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
@@ -99,10 +98,10 @@ public class RedDepot extends LinearOpMode {
                     r.getDeliveryControl().moveDelivery(INTAKE);
                 })
 
-                .build());
+                .build();
 
 
-        Trajectory toHub = drive.trajectoryBuilder(cycles.get(0).end())
+        Trajectory toHub = drive.trajectoryBuilder(freightPickup.end())
                 .addDisplacementMarker(() -> {
                     r.stopIntake();
                     r.getDeliveryControl().moveDelivery(HIGH);
@@ -119,9 +118,9 @@ public class RedDepot extends LinearOpMode {
                 .lineToLinearHeading(new Pose2d(0, -60, 0))
                 .build();
 
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
+        TrajectoryBuilder oldParkBuilder = drive.trajectoryBuilder(intermediatePark.end());
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder
+            oldParkBuilder
                     .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
                     .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
                                     Arrays.asList(
@@ -131,11 +130,11 @@ public class RedDepot extends LinearOpMode {
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
+                oldParkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
         }
 
-        Trajectory park = parkBuilder.build();
+        Trajectory oldPark = oldParkBuilder.build();
 
         telemetry.addData("Trajectories building complete", "");
         telemetry.update();
@@ -151,6 +150,7 @@ public class RedDepot extends LinearOpMode {
 
         timer.start();
 
+        //Detect the position of the Team Shipping Element
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
@@ -161,6 +161,7 @@ public class RedDepot extends LinearOpMode {
 
         r.stopCamera();
 
+        //Delivery the preloaded element
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
@@ -170,12 +171,18 @@ public class RedDepot extends LinearOpMode {
         Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 
-        for(Trajectory cycle : cycles) {
-            drive.followTrajectory(toCycle);
-            drive.followTrajectory(cycle);
+        //Attempt cycles as long as we have time left on the clock :D
+        double maximumDistance = 5;
+        //TODO: Make tihs time the time needed to park
+        while(timer.remainingTime() > 10 && opModeIsActive()) {
+            //Move to pick up the cube to cycle
+            drive.followTrajectory(toWarehouse);
+            drive.followTrajectory(freightPickup);
 
-            r.moveUntilElement(drive, 0.1);
+            //Drive forward until the element is detected
+            r.moveUntilElement(drive, 0.25, maximumDistance);
 
+            //Deliver the element
             drive.followTrajectory(toHub);
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
@@ -183,17 +190,49 @@ public class RedDepot extends LinearOpMode {
             Thread.sleep(500);
             r.getDeliveryControl().moveDelivery(STOWED);
 
-            //If there's not enough time yet, just break and don't continue any farther.
-            //TODO: Tune the time needed to park here
-            if(timer.remainingTime() < 10) {
-                break;
+            maximumDistance += 5;
+        }
+
+        //Move to pick up the cube to end the auton
+        drive.followTrajectory(toWarehouse);
+        drive.followTrajectory(freightPickup);
+
+        //Drive forward until the element is detected
+        r.moveUntilElement(drive, 0.25, maximumDistance);
+
+        //This time we're just picking up an element and then parking, so that's what we'll do. Then, we'll park in the correct position
+        //Since the position we're moving from is unpredictable (we don't know how far we had to move to intake an element), the trajectory is getting built here
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(drive.getPoseEstimate());
+        if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
+            parkBuilder
+                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                    .addDisplacementMarker(() -> {
+                        r.stopIntake();
+                    });
+            if(settings.getParkType() == OFFSET) {
+                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
         }
 
-        drive.followTrajectory(intermediatePark);
-        drive.followTrajectory(park);
-        r.getDeliveryControl().moveDelivery(INTAKE);
+        Trajectory park = parkBuilder.build();
 
+
+        drive.followTrajectory(park);
+
+
+        //Old parking code - Replacing it currently
+        //TODO: remove these trajectories from the code when we get the newer route working
+//        drive.followTrajectory(intermediatePark);
+//        drive.followTrajectory(park);
+
+        //Put the intake back in the correct position for teleop
+        r.getDeliveryControl().moveDelivery(INTAKE);
         Thread.sleep(1000);
 
     }
