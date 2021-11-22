@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @Config
 public class Constants {
@@ -13,6 +14,11 @@ public class Constants {
     public static final double DELIVERY_LOW_COUNTS = 425;
     public static final double DELIVERY_STOWED_COUNTS = 200;
     public static final double DELIVERY_INTAKE_COUNTS = 0;
+
+    //Delivery Motor PIDF
+    //TODO: Make this final after tuning
+    public static PIDFCoefficients DELIVERY_PID = new PIDFCoefficients(0, 0, 0, 0);
+
 
     public static final double INTAKE_SPEED = 1.00;
     public static final double DELIVERY_SPEED = 0.50;

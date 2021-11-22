@@ -7,7 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
@@ -36,8 +38,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.Vector;
 
 public class Robot {
 
@@ -76,6 +76,8 @@ public class Robot {
 
         delivery = new DeliveryArmControl((int) DELIVERY_STOWED_COUNTS, (int) DELIVERY_LOW_COUNTS, (int) DELIVERY_MIDDLE_COUNTS, (int) DELIVERY_EXTENDED_COUNTS, (int) DELIVERY_INTAKE_COUNTS, DELIVERY_SPEED, deliveryMotor, hardwareMap);
         intakeDirection = FORWARD;
+
+        deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
 
         dashboard = FtcDashboard.getInstance();
 
@@ -362,7 +364,6 @@ public class Robot {
         carouselMotor.setPower(0);
     }
 
-
     public void setMotorRPM(DcMotorEx motor, double ticks, double RPM) {
         motor.setVelocity(RPM / 60 * ticks);
     }
@@ -401,6 +402,14 @@ public class Robot {
 
     public IntakeDirections getIntakeDirection() {
         return intakeDirection;
+    }
+
+    public PIDFCoefficients getDeliveryPID() {
+        return DELIVERY_PID;
+    }
+
+    public void updateDeliveryPID() {
+        deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
     }
 
     public FtcDashboard getDashboard() {
