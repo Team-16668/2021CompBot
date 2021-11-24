@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Robot;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -66,6 +67,9 @@ public class Robot {
     boolean intakeForward, intakeBackward;
     boolean intakeStopped = true;
 
+    GamepadEx gamepad1;
+    GamepadEx gamepad2;
+
     DeliveryPositions automaticPosition = HIGH;
     CarouselSpeeds carouselSpeed = NORMAL;
 
@@ -120,6 +124,14 @@ public class Robot {
 
     public Robot(HardwareMap hardwareMap, boolean initializeBackVision, OpenCvPipeline backPipeline) {
         this(hardwareMap, initializeBackVision, backPipeline, false, null);
+    }
+
+    public Robot(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+        this(hardwareMap, false, null);
+
+        this.gamepad1 = new GamepadEx(gamepad1);
+        this.gamepad2 = new GamepadEx(gamepad2);
+
     }
 
     /**

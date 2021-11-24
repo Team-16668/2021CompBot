@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,13 +14,12 @@ import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
 @TeleOp(name="Game Teleop")
 public class GameTeleop extends LinearOpMode {
-
     Robot r;
     SampleMecanumDrive drive;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        r = new Robot(hardwareMap, false, null);
+        r = new Robot(hardwareMap, gamepad1, gamepad2);
         drive = new SampleMecanumDrive(hardwareMap);
 
 
