@@ -81,7 +81,7 @@ public class Robot {
         delivery = new DeliveryArmControl((int) DELIVERY_STOWED_COUNTS, (int) DELIVERY_LOW_COUNTS, (int) DELIVERY_MIDDLE_COUNTS, (int) DELIVERY_EXTENDED_COUNTS, (int) DELIVERY_INTAKE_COUNTS, DELIVERY_SPEED, deliveryMotor, hardwareMap);
         intakeDirection = FORWARD;
 
-        deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
+        //deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
 
         dashboard = FtcDashboard.getInstance();
 
@@ -182,13 +182,22 @@ public class Robot {
         intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
+//        telemetry.addData("currDelAuto", currDeliveryAuto);
+//        telemetry.addData("prevDelAuto", prevDeliveryAuto);
+//        telemetry.addData("servo position", getDeliveryControl().getServoPosition().name());
+//        telemetry.addData("Delivery Position", getDeliveryControl().getSlidePosition().name());
+//        telemetry.addData("Delivery power", getDeliveryControl().getDeliveryMotor().getCurrentPosition());
+//        telemetry.addData("Delivery target", getDeliveryControl().getDeliveryMotor().getTargetPosition());
+//        telemetry.addData("Delivery power", getDeliveryControl().getDeliveryMotor());
+
         if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto && getDeliveryControl().getServoPosition() == STOWED_SERVO) {
+            telemetry.addData("Trying to move the delivery", "yay");
             if(getDeliveryControl().getSlidePosition() != STOWED) {
+                telemetry.addData("Moving to", "Stowed");
                 getDeliveryControl().moveDelivery(STOWED);
-                //runIntakeForward();
             } else {
+                telemetry.addData("Moving to", "HIGH");
                 getDeliveryControl().moveDelivery(automaticPosition);
-                //stopIntake();
             }
         } else if((deliveryUpManual || deliveryDownManual)) {
             //Logic for manual control of the delivery arm
@@ -196,8 +205,10 @@ public class Robot {
         } else if (getDeliveryControl().getMode() == MANUAL && !deliveryUpManual && !deliveryDownManual) {
             getDeliveryControl().manualDeliveryMove(deliveryUpManual, deliveryDownManual);
         }
+        telemetry.update();
 
-        //Switch the level that the intake automatically goes to
+
+        //Switch the level that the delivery automatically goes to
         if(currRaiseDelivery && currRaiseDelivery != prevRaiseDelivery) {
             if(automaticPosition == LOW) {
                 automaticPosition = MID;

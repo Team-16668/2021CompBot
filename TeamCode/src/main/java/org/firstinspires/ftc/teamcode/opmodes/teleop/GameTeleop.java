@@ -38,7 +38,7 @@ public class GameTeleop extends LinearOpMode {
             r.armControlLoopTeleOp(gamepad2, telemetry);
 
             telemetry.addData("Alliance ", alliance.name());
-            telemetry.update();
+            //telemetry.update();
 
         }
     }
