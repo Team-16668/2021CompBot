@@ -192,22 +192,12 @@ public class Robot {
         intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
-//        telemetry.addData("currDelAuto", currDeliveryAuto);
-//        telemetry.addData("prevDelAuto", prevDeliveryAuto);
-//        telemetry.addData("servo position", getDeliveryControl().getServoPosition().name());
-//        telemetry.addData("Delivery Position", getDeliveryControl().getSlidePosition().name());
-//        telemetry.addData("Delivery power", getDeliveryControl().getDeliveryMotor().getCurrentPosition());
-//        telemetry.addData("Delivery target", getDeliveryControl().getDeliveryMotor().getTargetPosition());
-//        telemetry.addData("Delivery power", getDeliveryControl().getDeliveryMotor());
-
         if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
             if(getDeliveryControl().getServoPosition() == STOWED_SERVO) {
                 if (getDeliveryControl().getSlidePosition() != STOWED) {
                     getDeliveryControl().moveDelivery(STOWED);
-                    //runIntakeForward();
                 } else {
                     getDeliveryControl().moveDelivery(automaticPosition);
-                    //stopIntake();
                 }
             } else if(getDeliveryControl().getSlidePosition() != STOWED){
                 getDeliveryControl().deliverServoStow();
@@ -224,6 +214,7 @@ public class Robot {
 
         if(deliveryTimer.time(MILLISECONDS) > 500 && waitDeliveryMove) {
             getDeliveryControl().moveDelivery(STOWED);
+            waitDeliveryMove = false;
         }
 
         //Switch the level that the intake automatically goes to
