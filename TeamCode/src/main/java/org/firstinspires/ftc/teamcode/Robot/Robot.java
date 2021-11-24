@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
@@ -30,7 +29,6 @@ import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -41,10 +39,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Robot {
 
@@ -73,8 +67,6 @@ public class Robot {
     DeliveryPositions automaticPosition = HIGH;
     CarouselSpeeds carouselSpeed = NORMAL;
 
-    ElapsedTime deliveryTimer;
-    boolean waitDeliveryMove = false;
 
     public Robot(HardwareMap hardwareMap, boolean initializeBackVision, OpenCvPipeline backPipeline, boolean initializeFrontVision, OpenCvPipeline frontPipeline) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
@@ -92,8 +84,6 @@ public class Robot {
         deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
 
         dashboard = FtcDashboard.getInstance();
-
-        deliveryTimer = new ElapsedTime();
 
         if(initializeBackVision) {
             //Webcam initialization
@@ -192,29 +182,19 @@ public class Robot {
         intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
-        if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
-            if(getDeliveryControl().getServoPosition() == STOWED_SERVO) {
-                if (getDeliveryControl().getSlidePosition() != STOWED) {
-                    getDeliveryControl().moveDelivery(STOWED);
-                    //runIntakeForward();
-                } else {
-                    getDeliveryControl().moveDelivery(automaticPosition);
-                    //stopIntake();
-                }
-            } else if(getDeliveryControl().getSlidePosition() != STOWED){
-                getDeliveryControl().deliverServoStow();
-                deliveryTimer.reset();
-                waitDeliveryMove = true;
+        if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto && getDeliveryControl().getServoPosition() == STOWED_SERVO) {
+            if(getDeliveryControl().getSlidePosition() != STOWED) {
+                getDeliveryControl().moveDelivery(STOWED);
+                //runIntakeForward();
+            } else {
+                getDeliveryControl().moveDelivery(automaticPosition);
+                //stopIntake();
             }
         } else if((deliveryUpManual || deliveryDownManual)) {
             //Logic for manual control of the delivery arm
             getDeliveryControl().manualDeliveryMove(deliveryUpManual, deliveryDownManual);
         } else if (getDeliveryControl().getMode() == MANUAL && !deliveryUpManual && !deliveryDownManual) {
             getDeliveryControl().manualDeliveryMove(deliveryUpManual, deliveryDownManual);
-        }
-
-        if(deliveryTimer.time(MILLISECONDS) > 500 && waitDeliveryMove) {
-            getDeliveryControl().moveDelivery(STOWED);
         }
 
         //Switch the level that the intake automatically goes to
