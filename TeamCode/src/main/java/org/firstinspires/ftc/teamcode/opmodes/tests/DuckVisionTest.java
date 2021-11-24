@@ -32,9 +32,9 @@ public class DuckVisionTest extends LinearOpMode {
 
         drive.setPoseEstimate(new Pose2d(-36, -24, toRadians(270)));
 
-        r.getDashboard().startCameraStream(r.getFront_webcam(), 30);
-
         waitForStart();
+
+        r.getDashboard().startCameraStream(r.getFront_webcam(), 30);
 
         while(opModeIsActive()) {
 
