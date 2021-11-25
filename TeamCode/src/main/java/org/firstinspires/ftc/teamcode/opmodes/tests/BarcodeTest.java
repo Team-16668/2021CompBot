@@ -17,7 +17,7 @@ public class BarcodeTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         r = new Robot(hardwareMap, true, new ShippingElementDetector());
 
-        r.getDashboard().startCameraStream(r.getBack_webcam(), 30);
+        r.getDashboard().startCameraStream(r.getBackWebcam(), 30);
 
         while(!opModeIsActive()) {
             telemetry.addData("Position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());

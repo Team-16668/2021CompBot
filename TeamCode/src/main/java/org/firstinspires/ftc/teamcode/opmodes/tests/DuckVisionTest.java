@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.tests;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.DuckDetector;
-import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static java.lang.Math.toRadians;
 
@@ -25,8 +26,8 @@ public class DuckVisionTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        r = new Robot(hardwareMap, false, null, true,
-                new DuckDetector(new Vector2d(6, 0), -66, telemetry));
+        DuckDetector pipeline = new DuckDetector(new Vector2d(8, 0), -62, telemetry);
+        r = new Robot(hardwareMap, false, null, true, pipeline);
 
         drive = new SampleMecanumDrive(hardwareMap);
 
@@ -34,7 +35,7 @@ public class DuckVisionTest extends LinearOpMode {
 
         waitForStart();
 
-        r.getDashboard().startCameraStream(r.getFront_webcam(), 30);
+        r.getDashboard().startCameraStream(r.getFrontWebcam(), 30);
 
         while(opModeIsActive()) {
 
@@ -45,7 +46,7 @@ public class DuckVisionTest extends LinearOpMode {
             currDpadRight = gamepad1.dpad_right;
 
             if(currentA && currentA != prevA) {
-                ((DuckDetector) r.getFront_pipeline()).loopMats();
+                ((DuckDetector) r.getFrontPipeline()).loopMats();
             }
             if(currDpadUp && currDpadUp != prevDpadUp) {
                 drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY() - 2, drive.getPoseEstimate().getHeading()));
@@ -53,12 +54,25 @@ public class DuckVisionTest extends LinearOpMode {
                 drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY() + 2, drive.getPoseEstimate().getHeading()));
             } else if(currDpadLeft && currDpadLeft != prevDpadLeft) {
                 drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX() - 2, drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading()));
-            } else if(currDpadLeft && currDpadRight != prevDpadRight) {
+            } else if(currDpadRight && currDpadRight != prevDpadRight) {
                 drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX() + 2, drive.getPoseEstimate().getY(), drive.getPoseEstimate().getHeading()));
             }
 
-            ((DuckDetector) r.getFront_pipeline()).setRobotPose(drive.getPoseEstimate());
+            ((DuckDetector) r.getFrontPipeline()).setRobotPose(drive.getPoseEstimate());
+            drive.update();
 
+            Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
+
+            if(gamepad1.a) {
+                drive.followTrajectory(
+                        drive.trajectoryBuilder(drive.getPoseEstimate())
+                                .addDisplacementMarker(() -> {
+                                    r.runIntakeForward();
+                                })
+                                .lineToConstantHeading(goToPoint)
+                                .build()
+                );
+            }
 
             prevA = currentA;
 

@@ -119,6 +119,12 @@ public class Robot {
             front_pipeline = frontPipeline;
 
             front_webcam.setPipeline(front_pipeline);
+
+            front_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+                @Override
+                public void onOpened() { front_webcam.startStreaming(320, 240, OpenCvCameraRotation.UPSIDE_DOWN); }
+                @Override
+                public void onError(int errorCode) { }});
         }
     }
 
@@ -416,15 +422,15 @@ public class Robot {
         return carouselMotor;
     }
 
-    public OpenCvWebcam getBack_webcam() {
+    public OpenCvWebcam getBackWebcam() {
         return back_webcam;
     }
 
-    public OpenCvWebcam getFront_webcam() {
+    public OpenCvWebcam getFrontWebcam() {
         return front_webcam;
     }
 
-    public OpenCvPipeline getFront_pipeline() {
+    public OpenCvPipeline getFrontPipeline() {
         return front_pipeline;
     }
 
