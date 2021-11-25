@@ -20,9 +20,9 @@ import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.OFFSET;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.REGULAR;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.SHIPPING_AREA;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSET;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.REGULAR;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.SHIPPING_AREA;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
@@ -39,6 +39,7 @@ import java.util.Arrays;
 
 
 //TODO: Properly update this to use the different route we're running for RedDepot
+//TODO: Implement new delivery process (putting the delivery down while moving)
 @Autonomous(name = "Blue Depot")
 public class BlueDepot extends LinearOpMode {
 
@@ -134,15 +135,15 @@ public class BlueDepot extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition().name());
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
             telemetry.update();
             Thread.sleep(50);
         }
 
         waitForStart();
 
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
@@ -150,7 +151,7 @@ public class BlueDepot extends LinearOpMode {
                     .build();
         }
 
-        r.stopCamera();
+        r.stopBackCamera();
 
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);

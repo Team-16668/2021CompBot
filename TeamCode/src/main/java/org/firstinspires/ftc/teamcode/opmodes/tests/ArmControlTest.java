@@ -23,7 +23,6 @@ public class ArmControlTest extends LinearOpMode {
         while(opModeIsActive()) {
             r.armControlLoopTeleOp(gamepad1, telemetry);
 
-            //TODO: Tune the delivery PID
             if(gamepad1.a) {
                 r.updateDeliveryPID();
             }

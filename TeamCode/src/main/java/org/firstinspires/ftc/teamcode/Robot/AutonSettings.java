@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.*;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.*;
 
 public class AutonSettings {
 
     Gamepad gamepad;
-    parkTypes parkType = REGULAR;
+    ParkTypes parkType = REGULAR;
     Telemetry telemetry;
     double minimumParkDelay;
     double maximumParkDelay;
@@ -70,15 +70,15 @@ public class AutonSettings {
         telemetry.update();
     }
 
-    public enum parkTypes {
+    public enum ParkTypes {
         REGULAR, OFFSET, SHIPPING_AREA
     }
 
-    public parkTypes getParkType() {
+    public ParkTypes getParkType() {
         return parkType;
     }
 
-    public void setParkType(parkTypes parkType) {
+    public void setParkType(ParkTypes parkType) {
         this.parkType = parkType;
     }
 

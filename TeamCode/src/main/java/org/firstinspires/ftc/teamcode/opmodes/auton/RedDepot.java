@@ -21,9 +21,9 @@ import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.OFFSET;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.REGULAR;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.SHIPPING_AREA;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSET;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.REGULAR;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.SHIPPING_AREA;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
@@ -31,9 +31,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static java.lang.Math.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by: barta
@@ -81,6 +79,12 @@ public class RedDepot extends LinearOpMode {
          */
 
         Trajectory toWarehouse = drive.trajectoryBuilder(deliverPreload.end())
+                .addDisplacementMarker(() -> {
+                    r.getDeliveryControl().deliverServoStow();
+                })
+                .addTemporalMarker(0.5, () -> {
+                    r.getDeliveryControl().moveDelivery(STOWED);
+                })
                 .lineToLinearHeading(new Pose2d(12, -66, toRadians(0)))
                 .build();
 
@@ -140,8 +144,8 @@ public class RedDepot extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition().name());
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
             telemetry.update();
             Thread.sleep(50);
         }
@@ -151,7 +155,7 @@ public class RedDepot extends LinearOpMode {
         timer.start();
 
         //Detect the position of the Team Shipping Element
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
 
         if(deliveryPosition == LOW) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
@@ -159,7 +163,7 @@ public class RedDepot extends LinearOpMode {
                     .build();
         }
 
-        r.stopCamera();
+        r.stopBackCamera();
 
         //Delivery the preloaded element
         r.getDeliveryControl().moveDelivery(deliveryPosition);
@@ -167,12 +171,9 @@ public class RedDepot extends LinearOpMode {
 
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        r.getDeliveryControl().deliverServoStow();
-        Thread.sleep(500);
-        r.getDeliveryControl().moveDelivery(STOWED);
 
         //Attempt cycles as long as we have time left on the clock :D
-        double maximumDistance = 5;
+        double maximumDistance = 4;
         //TODO: Make tihs time the time needed to park
         while(timer.remainingTime() > 10 && opModeIsActive()) {
             //Move to pick up the cube to cycle
@@ -180,17 +181,14 @@ public class RedDepot extends LinearOpMode {
             drive.followTrajectory(freightPickup);
 
             //Drive forward until the element is detected
-            r.moveUntilElement(drive, 0.25, maximumDistance);
+            r.moveUntilElement(drive, maximumDistance);
 
             //Deliver the element
             drive.followTrajectory(toHub);
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-            r.getDeliveryControl().deliverServoStow();
-            Thread.sleep(500);
-            r.getDeliveryControl().moveDelivery(STOWED);
 
-            maximumDistance += 5;
+            maximumDistance += 4;
         }
 
         //Move to pick up the cube to end the auton
@@ -198,7 +196,7 @@ public class RedDepot extends LinearOpMode {
         drive.followTrajectory(freightPickup);
 
         //Drive forward until the element is detected
-        r.moveUntilElement(drive, 0.25, maximumDistance);
+        r.moveUntilElement(drive, maximumDistance);
 
         //This time we're just picking up an element and then parking, so that's what we'll do. Then, we'll park in the correct position
         //Since the position we're moving from is unpredictable (we don't know how far we had to move to intake an element), the trajectory is getting built here

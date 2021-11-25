@@ -46,20 +46,22 @@ public class DuckDetector extends OpenCvPipeline {
     private MatOfPoint biggestContour;
     private Rect boundingRect;
 
-    double centerX;
-    double centerY;
     Pose2d robotPose = new Pose2d();
     Pose2d correctedRobotPose = new Pose2d();
-    Vector2d relativeCameraPoint;
-    double distanceFromCenter;
-    double cameraAngle;
     Pose2d correctedCameraPose = new Pose2d();
     Pose2d fieldCameraPose = new Pose2d();
+
+    Vector2d goToPoint = new Vector2d();
+    Vector2d relativeCameraPoint;
+
+    double correctedAngleToDuck = 0;
+    double distanceFromCenter;
+    double cameraAngle;
+    double centerX;
+    double centerY;
     double yLine;
 
     boolean duckDetected;
-
-    Vector2d goToPoint = new Vector2d();
 
     private ShippingElementDetector.Mats activeMat = INPUT;
 
@@ -148,7 +150,6 @@ public class DuckDetector extends OpenCvPipeline {
             duckDetected = true;
 
             Point imageCenter = new Point(centerX, getActiveMat().height());
-            //TODO: Had my axes wrong so this is going the right way XD
 
             Imgproc.line(getActiveMat(), imageCenter, new Point(centerX, 0), new Scalar(255, 0, 0), 3);
 
@@ -158,7 +159,7 @@ public class DuckDetector extends OpenCvPipeline {
             );
 
             double rawAngleToDuck = atan2(correctedDuckCenter.y, correctedDuckCenter.x);
-            double correctedAngleToDuck = correctedDuckCenter.x > 0 ? toRadians(90) - rawAngleToDuck : - (rawAngleToDuck - toRadians(90));
+            correctedAngleToDuck = correctedDuckCenter.x > 0 ? toRadians(90) - rawAngleToDuck : - (rawAngleToDuck - toRadians(90));
 
             double xOffset = abs(yLine - (fieldCameraPose.getY())) * tan(abs(correctedAngleToDuck));
 
@@ -196,7 +197,6 @@ public class DuckDetector extends OpenCvPipeline {
         //  (looking from the top with the audience in the third and fourth quadrants)
         this.correctedRobotPose = new Pose2d(- robotPose.getY(), robotPose.getX(), robotPose.getHeading() + toRadians(90));
         calculateCameraPose();
-        //TODO: Angle broken
         fieldCameraPose = new Pose2d(correctedCameraPose.getY() + correctedRobotPose.getY(), -(correctedCameraPose.getX() + correctedRobotPose.getX()), correctedRobotPose.getHeading() - toRadians(90));
     }
 
@@ -210,19 +210,6 @@ public class DuckDetector extends OpenCvPipeline {
         );
     }
 
-    public double wrapAngle(double angle) {
-        while (angle < toRadians(0) || angle > toRadians(360)) {
-            if (angle < toRadians(0)) {
-                angle += toRadians(360);
-            } else if (angle > toRadians(360)) {
-                angle -= toRadians(360);
-            } else if (abs(angle - toRadians(360)) < toRadians(0.1)) {
-                angle = toRadians(0);
-            }
-        }
-        return angle;
-    }
-
     public boolean isDuckDetected() {
         return duckDetected;
     }
@@ -230,9 +217,8 @@ public class DuckDetector extends OpenCvPipeline {
     public Vector2d getGoToPoint() {
         return goToPoint;
     }
-
-    public Vector2d getRelativeCameraPoint() {
-        return relativeCameraPoint;
+    public double getCorrectedAngleToDuck() {
+        return correctedAngleToDuck;
     }
 
     private Mat getActiveMat(){

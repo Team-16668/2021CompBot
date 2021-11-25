@@ -313,12 +313,12 @@ public class Robot {
         }
     }
 
-    public boolean moveUntilElement(SampleMecanumDrive drive, double power, double maximumDistance) throws InterruptedException {
+    public boolean moveUntilElement(SampleMecanumDrive drive, double maximumDistance) throws InterruptedException {
 
         Pose2d startPose = drive.getPoseEstimate();
 
         drive.setWeightedDrivePower(new Pose2d(
-                power,
+                INTAKE_ELEMENT_SPEED,
                 0,
                 0
         ));
@@ -335,6 +335,10 @@ public class Robot {
             Thread.sleep(50);
 
             movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
+            if(movedTooFar) {
+                drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
+                return false;
+            }
         }
 
         drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
@@ -406,12 +410,29 @@ public class Robot {
         motor.setVelocity(RPM / 60 * ticks);
     }
 
-    public OpenCvPipeline getBack_pipeline() {
+    public OpenCvPipeline getBackPipeline() {
         return back_pipeline;
     }
 
-    public void stopCamera() {
+    //TODO: This closing code might be broken so be aware
+    public void stopBackCamera() {
         back_webcam.stopStreaming();
+        back_webcam.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+            @Override
+            public void onClose() {
+
+            }
+        });
+    }
+
+    public void stopFrontCamera() {
+        front_webcam.stopStreaming();
+        front_webcam.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+            @Override
+            public void onClose() {
+
+            }
+        });
     }
 
     public DcMotorEx getIntakeMotor() {

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
-import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.parkTypes.*;
+import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.NORMAL;
@@ -34,6 +34,8 @@ import java.util.Arrays;
  */
 
 @Autonomous(name = "Blue Carousel")
+//TODO: Update this with the new duck routes (when they're ready to go)
+//TODO: Update this with the new delivery sequence (moving while stowing the delivery)
 public class BlueCarousel extends LinearOpMode {
 
     Robot r;
@@ -116,16 +118,16 @@ public class BlueCarousel extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBack_pipeline()).getBarcodePosition().name());
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition().name());
+            telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
+            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
             telemetry.update();
             Thread.sleep(50);
         }
 
         waitForStart();
 
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBack_pipeline()).getDeliveryPosition();
-        r.stopCamera();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
+        r.stopBackCamera();
 
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
