@@ -90,13 +90,15 @@ public class RedDepot extends LinearOpMode {
 
 
         Trajectory freightPickup = drive.trajectoryBuilder(toWarehouse.end())
-                .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
-                                Arrays.asList(
-                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                        new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
-                                )
-                        ),
-                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .splineToConstantHeading(new Vector2d(36, -66), 0
+//                        , new MinVelocityConstraint(
+//                                Arrays.asList(
+//                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+//                                        new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+//                                )
+//                        ),
+//                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                )
                 .addDisplacementMarker(() -> {
                     r.runIntakeForward();
                     r.getDeliveryControl().moveDelivery(INTAKE);
@@ -126,13 +128,15 @@ public class RedDepot extends LinearOpMode {
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
             oldParkBuilder
                     .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
-                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
-                                    Arrays.asList(
-                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
-                                    )
-                            ),
-                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+                    .splineToConstantHeading(new Vector2d(36, -66), 0
+//                            , new MinVelocityConstraint(
+//                                    Arrays.asList(
+//                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+//                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+//                                    )
+//                            ),
+//                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL)
+                    );
             if(settings.getParkType() == OFFSET) {
                 oldParkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
