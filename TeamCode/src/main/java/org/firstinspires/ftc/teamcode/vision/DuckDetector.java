@@ -28,7 +28,8 @@ import java.util.List;
 
 @Config
 public class DuckDetector extends OpenCvPipeline {
-
+    
+    //TODO: replace this with the correct color range
     public static int hue1 = 20;
     public static int saturation1 = 100;
     public static int value1 = 0;

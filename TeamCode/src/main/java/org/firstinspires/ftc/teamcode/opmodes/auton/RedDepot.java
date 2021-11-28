@@ -185,10 +185,17 @@ public class RedDepot extends LinearOpMode {
             drive.followTrajectory(freightPickup);
 
             //Drive forward until the element is detected
-            r.moveUntilElement(drive, maximumDistance);
+            r.moveUntilElement(drive, maximumDistance, this);
 
             //Deliver the element
-            drive.followTrajectory(toHub);
+            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .addDisplacementMarker(() -> {
+                        r.runIntakeBackwards();
+                        r.getDeliveryControl().moveDelivery(HIGH);
+                    })
+                    .addTemporalMarker(1, () -> r.stopIntake())
+                    .lineToLinearHeading(new Pose2d(2, -38, toRadians(335)))
+                    .build());
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
@@ -200,7 +207,7 @@ public class RedDepot extends LinearOpMode {
         drive.followTrajectory(freightPickup);
 
         //Drive forward until the element is detected
-        r.moveUntilElement(drive, maximumDistance);
+        r.moveUntilElement(drive, maximumDistance, this);
 
         //This time we're just picking up an element and then parking, so that's what we'll do. Then, we'll park in the correct position
         //Since the position we're moving from is unpredictable (we don't know how far we had to move to intake an element), the trajectory is getting built here

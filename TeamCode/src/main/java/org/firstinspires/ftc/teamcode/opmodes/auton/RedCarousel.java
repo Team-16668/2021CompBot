@@ -217,7 +217,7 @@ public class RedCarousel extends LinearOpMode {
 
         if(settings.getParkType() == REGULAR || settings.getParkType() == OFFSET) {
             r.runIntakeForward();
-            r.moveUntilElement(drive, 4);
+            r.moveUntilElement(drive, 4, this);
             r.stopIntake();
         }
 
