@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
@@ -31,9 +32,12 @@ import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.openftc.easyopencv.OpenCvCameraRotation.SIDEWAYS_LEFT;
+import static org.openftc.easyopencv.OpenCvCameraRotation.UPSIDE_DOWN;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -41,10 +45,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Robot {
 
@@ -95,7 +95,7 @@ public class Robot {
 
         deliveryTimer = new ElapsedTime();
 
-        if(initializeBackVision) {
+        if(initializeBackVision && !initializeFrontVision) {
             //Webcam initialization
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
@@ -106,12 +106,11 @@ public class Robot {
 
             back_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                 @Override
-                public void onOpened() { back_webcam.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_LEFT); }
+                public void onOpened() { back_webcam.startStreaming(320, 240, SIDEWAYS_LEFT); }
                 @Override
                 public void onError(int errorCode) { }});
 
-        }
-        if(initializeFrontVision) {
+        } else if(initializeFrontVision && !initializeBackVision) {
             //Webcam initialization
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
@@ -122,9 +121,67 @@ public class Robot {
 
             front_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                 @Override
-                public void onOpened() { front_webcam.startStreaming(320, 240, OpenCvCameraRotation.UPSIDE_DOWN); }
+                public void onOpened() { front_webcam.startStreaming(320, 240, UPSIDE_DOWN); }
                 @Override
                 public void onError(int errorCode) { }});
+        } else if(initializeBackVision && initializeFrontVision) {
+            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+
+            /**
+             * This is the only thing you need to do differently when using multiple cameras.
+             * Instead of obtaining the camera monitor view and directly passing that to the
+             * camera constructor, we invoke {@link OpenCvCameraFactory#splitLayoutForMultipleViewports(int, int, OpenCvCameraFactory.ViewportSplitMethod)}
+             * on that view in order to split that view into multiple equal-sized child views,
+             * and then pass those child views to the constructor.
+             */
+            int[] viewportContainerIds = OpenCvCameraFactory.getInstance()
+                    .splitLayoutForMultipleViewports(
+                            cameraMonitorViewId, //The container we're splitting
+                            2, //The number of sub-containers to create
+                            OpenCvCameraFactory.ViewportSplitMethod.VERTICALLY); //Whether to split the container vertically or horizontally
+
+            back_webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, BACK_CAM), viewportContainerIds[0]);
+            front_webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, FRONT_CAM), viewportContainerIds[1]);
+
+            back_pipeline = backPipeline;
+            front_pipeline = frontPipeline;
+
+            back_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            {
+                @Override
+                public void onOpened()
+                {
+                    back_webcam.setPipeline(back_pipeline);
+                    back_webcam.startStreaming(320, 240, SIDEWAYS_LEFT);
+                }
+
+                @Override
+                public void onError(int errorCode)
+                {
+                    /*
+                     * This will be called if the camera could not be opened
+                     */
+                }
+            });
+
+            front_webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+            {
+                @Override
+                public void onOpened()
+                {
+                    front_webcam.setPipeline(front_pipeline);
+                    front_webcam.startStreaming(320, 240, UPSIDE_DOWN);
+                }
+
+                @Override
+                public void onError(int errorCode)
+                {
+                    /*
+                     * This will be called if the camera could not be opened
+                     */
+                }
+            });
+
         }
     }
 
@@ -172,6 +229,7 @@ public class Robot {
      * @param gamepad Gamepad (preferably 2)
      */
     public void armControlLoopTeleOp(Gamepad gamepad, Telemetry telemetry) {
+        //TODO: Add code for changing the lights when an element is loaded
         /**
          * CONTROLS
          *  A: Automatic toggle between low and high
@@ -183,6 +241,10 @@ public class Robot {
          *  Right trigger: Intake forward
          *  Left trigger: Intake Backward
          */
+
+        telemetry.addData("Element loaded", getDeliveryControl().isElementLoaded());
+        telemetry.addData("Distance readout", getDeliveryControl().getDistanceSensor().getDistance(MM));
+        telemetry.update();
 
         currDeliveryAuto = gamepad.a;
         currServoSwitch = gamepad.x;
@@ -322,9 +384,6 @@ public class Robot {
                 0,
                 0
         ));
-
-        //TODO: Make this loop end when we detect an element. Use distance sensor
-        //TODO: Make the robot skip to parking if this fails
         //TODO: Test stopping if we've moved beyond the maximum distance
 
         boolean element = false;
@@ -333,6 +392,7 @@ public class Robot {
         while(!element && !movedTooFar) {
             drive.update();
             Thread.sleep(50);
+            element = getDeliveryControl().isElementLoaded();
 
             movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
             if(movedTooFar) {
@@ -347,11 +407,10 @@ public class Robot {
     }
 
     double getDistance(Pose2d pose1, Pose2d pose2) {
-        //return sqrt(pow(pose1.getX() + pose2.getX(), 2) + pow(pose1.getY() + pose2.getY(), 2));
         return getDistance(new Vector2d(pose1.getX(), pose1.getY()), new Vector2d(pose2.getX(), pose2.getY()));
     }
     double getDistance(Vector2d vector1, Vector2d vector2) {
-        return sqrt(pow(vector1.getX() + vector2.getX(), 2) + pow(vector1.getY() + vector2.getY(), 2));
+        return sqrt(pow(vector1.getX() - vector2.getX(), 2) + pow(vector1.getY() - vector2.getY(), 2));
     }
 
     public void lowerDeliveryArm() {

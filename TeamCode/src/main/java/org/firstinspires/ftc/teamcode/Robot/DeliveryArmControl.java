@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.Robot;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.*;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DISTANCE;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.ELEMENT_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
@@ -10,6 +13,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.*;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -28,6 +32,8 @@ public class DeliveryArmControl {
     DeliveryPositions slidePosition;
     DeliveryServoPositions servoPosition;
 
+    DistanceSensor distanceSensor;
+
     public DeliveryArmControl(int stowedCounts, int lowCounts, int midCounts, int extendedCounts, int intakeCounts, double power, DcMotorEx delivery, HardwareMap hardwareMap) {
         this.stowedCounts = stowedCounts;
         this.lowCounts = lowCounts;
@@ -37,6 +43,7 @@ public class DeliveryArmControl {
         this.power = power;
         this.delivery = delivery;
         deliveryServo = hardwareMap.get(Servo.class, DELIVERY_SERVO);
+        distanceSensor = hardwareMap.get(DistanceSensor.class, DELIVERY_DISTANCE);
 
         //this.delivery.setDirection(REVERSE);
 
@@ -112,6 +119,10 @@ public class DeliveryArmControl {
         servoPosition = STOWED_SERVO;
     }
 
+    public boolean isElementLoaded() {
+        return distanceSensor.getDistance(MM) < ELEMENT_THRESHOLD ? true : false;
+    }
+
     public DeliveryServoPositions getServoPosition() {
         return servoPosition;
     }
@@ -132,6 +143,9 @@ public class DeliveryArmControl {
     }
     public Servo getDeliveryServo() {
         return deliveryServo;
+    }
+    public DistanceSensor getDistanceSensor() {
+        return distanceSensor;
     }
 
     public enum DeliveryPositions {

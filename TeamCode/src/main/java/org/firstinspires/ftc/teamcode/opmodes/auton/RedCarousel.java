@@ -52,6 +52,8 @@ public class RedCarousel extends LinearOpMode {
                 new DuckDetector(new Vector2d(8, 0), -62, telemetry));
         drive = new SampleMecanumDrive(hardwareMap);
 
+        telemetry.addData("Got here", "indeed");
+        telemetry.update();
         //TODO: Adjust this to reflect the actual time we have
         settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
@@ -178,11 +180,9 @@ public class RedCarousel extends LinearOpMode {
         if(((DuckDetector) r.getFrontPipeline()).isDuckDetected()) {
             ((DuckDetector) r.getFrontPipeline()).setRobotPose(drive.getPoseEstimate());
             Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
-            double turnAngle = ((DuckDetector) r.getFrontWebcam()).getCorrectedAngleToDuck();
             r.stopFrontCamera();
 
             //Pickup the duck
-            drive.turn(-turnAngle);
             drive.followTrajectory(
                     drive.trajectoryBuilder(drive.getPoseEstimate())
                             .addDisplacementMarker(() -> {

@@ -61,9 +61,10 @@ public class DuckVisionTest extends LinearOpMode {
             ((DuckDetector) r.getFrontPipeline()).setRobotPose(drive.getPoseEstimate());
             drive.update();
 
-            Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
-
             if(gamepad1.a) {
+                Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
+
+                //Pickup the duck
                 drive.followTrajectory(
                         drive.trajectoryBuilder(drive.getPoseEstimate())
                                 .addDisplacementMarker(() -> {

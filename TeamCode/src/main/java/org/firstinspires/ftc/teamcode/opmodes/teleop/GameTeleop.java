@@ -37,8 +37,7 @@ public class GameTeleop extends LinearOpMode {
             //Loop for the control of the delivery arm and intake.
             r.armControlLoopTeleOp(gamepad2, telemetry);
 
-            telemetry.addData("Alliance ", alliance.name());
-            //telemetry.update();
+            //TODO: Add the ability to switch the alliance in case of emergency
 
         }
     }

@@ -15,6 +15,9 @@ public class Constants {
     public static final double DELIVERY_STOWED_COUNTS = 200;
     public static final double DELIVERY_INTAKE_COUNTS = 0;
 
+    //Distance sensor threshold (in MM)
+    public static final double ELEMENT_THRESHOLD = 85;
+
     //Delivery Motor PIDF
     public static PIDFCoefficients DELIVERY_PID = new PIDFCoefficients(0, 0, 0, 0);
 
@@ -44,4 +47,5 @@ public class Constants {
     public static final String IMU = "imu";
     public static final String BACK_CAM = "back_webcam";
     public static final String FRONT_CAM = "front_webcam";
+    public static final String DELIVERY_DISTANCE = "delivery_distance";
 }
