@@ -32,7 +32,12 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static java.lang.Math.*;
 
+import androidx.appcompat.widget.VectorEnabledTintResources;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * Created by: barta
@@ -99,18 +104,29 @@ public class RedDepot extends LinearOpMode {
 
                 .build();
 
-        Trajectory newPickup = drive.trajectoryBuilder(new Pose2d(5, -38, toRadians(335)))
-                .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
-                })
-                .addTemporalMarker(0.5, () -> {
-                    r.getDeliveryControl().moveDelivery(STOWED);
-                })
-                .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
-                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
-                .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
-                .splineToConstantHeading(new Vector2d(46, -67), 0)
-                .build();
+        List<Vector2d> pickupPoints = new ArrayList<Vector2d>() {{
+           add(new Vector2d(46, -67));
+           add(new Vector2d(47, -63));
+           add(new Vector2d(47, -59));
+        }};
+
+        List<Trajectory> pickups = new ArrayList<>();
+
+        for(Vector2d pickup : pickupPoints) {
+
+            pickups.add(drive.trajectoryBuilder(new Pose2d(5, -38, toRadians(335)))
+                    .addDisplacementMarker(() -> {
+                        r.getDeliveryControl().deliverServoStow();
+                    })
+                    .addTemporalMarker(0.5, () -> {
+                        r.getDeliveryControl().moveDelivery(STOWED);
+                    })
+                    .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
+                    .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
+                    .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
+                    .splineToConstantHeading(pickup, 0)
+                    .build());
+        }
 
 
         Trajectory deliverCycle = drive.trajectoryBuilder(toWarehouse.end())
@@ -199,7 +215,7 @@ public class RedDepot extends LinearOpMode {
             //TODO: Go through and remove extra comments once everything is working correctly
 //            drive.followTrajectory(toWarehouse);
 //            drive.followTrajectory(freightPickup);
-            drive.followTrajectory(newPickup);
+            drive.followTrajectory(pickups.get(i));
 
             //Drive forward until the element is detected
             boolean keepGoing = r.moveUntilElement(drive, maximumDistance, this);
@@ -215,6 +231,7 @@ public class RedDepot extends LinearOpMode {
                     .addDisplacementMarker(() -> r.runIntakeBackwards())
                     .addTemporalMarker(1, () -> r.stopIntake())
                     .setReversed(true)
+                    .splineToConstantHeading(new Vector2d(36, -67), toRadians(180))
                     .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
                     .setReversed(false)
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
@@ -222,6 +239,7 @@ public class RedDepot extends LinearOpMode {
                     .build();
 
             drive.followTrajectorySequence(cycleDelivery);
+            //TODO: Add a list feature to allow the robot to move to different points
 
 //            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
 //                    .addDisplacementMarker(() -> {

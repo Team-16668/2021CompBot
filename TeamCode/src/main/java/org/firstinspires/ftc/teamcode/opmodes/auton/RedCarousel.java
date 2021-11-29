@@ -75,14 +75,6 @@ public class RedCarousel extends LinearOpMode {
         Pose2d intermediateParkPose = new Pose2d(-36, -48, 0);
 
         /**
-         * Deliver Preload Element
-         */
-        Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
-                .build();
-
-
-        /**
          * Go to the Carousel
          */
         Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
@@ -146,7 +138,6 @@ public class RedCarousel extends LinearOpMode {
 
         while(!opModeIsActive()) {
                 telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
-//                telemetry.addData("Is Duck Detected", ((DuckDetector) r.getFrontPipeline()).isDuckDetected());
                 telemetry.update();
                 Thread.sleep(50);
             }
@@ -156,11 +147,23 @@ public class RedCarousel extends LinearOpMode {
             DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
             r.stopBackCamera();
 
-            if(deliveryPosition == MID) {
+            /**
+             * Deliver Preload Element
+             */
+
+            Trajectory deliverPreload;
+
+            if(deliveryPosition == HIGH) {
+                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                        .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
+                        .build();
+
+            } else if(deliveryPosition == MID) {
                 deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
                         .lineToLinearHeading(new Pose2d(-28, -38, toRadians(215)))
                         .build();
-            } else if(deliveryPosition == LOW) {
+            } else {
+                //LOW
                 deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
                         .lineToLinearHeading(new Pose2d(-27, -37, toRadians(215)))
                         .build();
@@ -183,47 +186,8 @@ public class RedCarousel extends LinearOpMode {
             Thread.sleep(1500);
             r.stopCarousel();
 
-            //Score duck
-//            drive.followTrajectory(detectDuck);
-
-            //Get duck information and close the camera
-//            if(((DuckDetector) r.getFrontPipeline()).isDuckDetected()) {
-//
-//                Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
-//                if(goToPoint.getX() > -65 || goToPoint.getX() < -12) {
-//
-//                    //Pickup the duck
-//                    drive.followTrajectory(
-//                            drive.trajectoryBuilder(drive.getPoseEstimate())
-//                                    .addDisplacementMarker(() -> {
-//                                        r.runIntakeForward();
-//                                    })
-//                                    .lineToConstantHeading(goToPoint)
-//                                    .build()
-//                    );
-//                    r.stopFrontCamera();
-//
-//                    //Deliver the duck
-//                    Trajectory deliverDuck = drive.trajectoryBuilder(drive.getPoseEstimate())
-//                            .addDisplacementMarker(() -> {
-//                                r.getDeliveryControl().moveDelivery(HIGH);
-//                            })
-//                            .addTemporalMarker(1, () -> r.stopIntake())
-//                            .lineToLinearHeading(deliverDuckPose)
-//                            .build();
-//
-//                    drive.followTrajectory(deliverDuck);
-//                    r.getDeliveryControl().deliverServoDeliver();
-//                    Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-//                    drive.followTrajectory(intermediatePark);
-//                } else {
-//                    drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
-//                            .lineToLinearHeading(intermediateParkPose).build());
-//                }
-//            } else {
             drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
                     .lineToLinearHeading(intermediateParkPose).build());
-//            }
 
             //Park
             Thread.sleep((long) settings.getChosenParkDelay());
