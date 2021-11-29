@@ -42,7 +42,7 @@ public class RedCarousel extends LinearOpMode {
     SampleMecanumDrive drive;
     AutonSettings settings;
 
-    //TODO: Remove commented code once I get the vision version working
+    //TODO: Remove commented code once I get this whole thing working
     //TODO: Do this for blue
 
     @Override
@@ -70,68 +70,40 @@ public class RedCarousel extends LinearOpMode {
         /**
          * Build Trajectories
          */
+            /**
+             * Deliver preload
+             */
+            Trajectory deliverPreload;
 
-        Pose2d deliverDuckPose = new Pose2d(-29, -38, toRadians(215));
-        Pose2d intermediateParkPose = new Pose2d(-36, -48, 0);
+            /**
+             * Go to the Carousel
+             */
+            Pose2d carouselPos = new Pose2d(-60, -60, toRadians(225));
 
-        /**
-         * Go to the Carousel
-         */
-        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
-                .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
-                })
-                .addTemporalMarker(0.5, () -> {
-                    r.getDeliveryControl().moveDelivery(STOWED);
-                })
-                .lineToLinearHeading(new Pose2d(-60, -60, toRadians(225)))
-                .build();
+            /**
+             * Park
+             */
+            Trajectory intermediatePark = drive.trajectoryBuilder(carouselPos)
+                    .lineToLinearHeading(new Pose2d(-36, -48, 0))
+                    .build();
 
-        telemetry.addData("Building trajectories", "park");
-        telemetry.update();
+            TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
+            if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
+                parkBuilder
+                        .splineToConstantHeading(new Vector2d(-12, -65), 0)
+                        .splineToConstantHeading(new Vector2d(12, -65), 0)
+                        .splineToConstantHeading(new Vector2d(40, -65), 0, new MinVelocityConstraint(
+                                        Arrays.asList(
+                                                new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                                new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+                                        )
+                                ),
+                                new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+            } else if (settings.getParkType() == SHIPPING_AREA) {
+                parkBuilder.lineToLinearHeading(new Pose2d(-66, -40, 0));
+            }
 
-        /**
-         * Detect and Deliver Duck
-         */
-        Trajectory detectDuck = drive.trajectoryBuilder(toCarousel.end())
-                .lineToLinearHeading( new Pose2d(-50, -40, toRadians(270)))
-                .build();
-
-        /**
-         * Park
-         */
-        Trajectory intermediatePark = drive.trajectoryBuilder(deliverDuckPose)
-                .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
-                })
-                .addTemporalMarker(0.5, () -> {
-                    r.getDeliveryControl().moveDelivery(STOWED);
-                })
-                .lineToLinearHeading(intermediateParkPose)
-                .build();
-
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
-        if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
-            parkBuilder
-                    .splineToConstantHeading(new Vector2d(-12, -65), 0)
-                    .splineToConstantHeading(new Vector2d(12, -65), 0)
-                    .splineToConstantHeading(new Vector2d(40, -65), 0, new MinVelocityConstraint(
-                                    Arrays.asList(
-                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                            new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                    )
-                            ),
-                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
-
-//            if(settings.getParkType() == OFFSET) {
-//                parkBuilder.splineToConstantHeading(new Vector2d(38, -36), 0);
-//            }
-
-        } else if (settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder.lineToLinearHeading(new Pose2d(-66, -40, 0));
-        }
-
-        Trajectory park = parkBuilder.build();
+            Trajectory park = parkBuilder.build();
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
@@ -140,70 +112,70 @@ public class RedCarousel extends LinearOpMode {
                 telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
                 telemetry.update();
                 Thread.sleep(50);
-            }
+        }
 
-            waitForStart();
+        waitForStart();
 
-            DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
-            r.stopBackCamera();
+        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
+        r.stopBackCamera();
 
-            /**
-             * Deliver Preload Element
-             */
+        /**
+         * Deliver Preload Element Trajectory building
+         */
 
-            Trajectory deliverPreload;
+        if(deliveryPosition == HIGH) {
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
+                    .build();
 
-            if(deliveryPosition == HIGH) {
-                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                        .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
-                        .build();
+        } else if(deliveryPosition == MID) {
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-28, -38, toRadians(215)))
+                    .build();
+        } else {
+            //LOW
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-27, -37, toRadians(215)))
+                    .build();
+        }
 
-            } else if(deliveryPosition == MID) {
-                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                        .lineToLinearHeading(new Pose2d(-28, -38, toRadians(215)))
-                        .build();
-            } else {
-                //LOW
-                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                        .lineToLinearHeading(new Pose2d(-27, -37, toRadians(215)))
-                        .build();
-            }
+        /**
+         * Build the trajectory to park
+         * We do this after match start becuase the spot we're coming from (at the shipping hub) varies
+         */
 
-            //Deliver Preload
-            r.getDeliveryControl().moveDelivery(deliveryPosition);
-            drive.followTrajectory(deliverPreload);
+        Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
+                .addDisplacementMarker(() -> {
+                    r.getDeliveryControl().deliverServoStow();
+                })
+                .addTemporalMarker(0.5, () -> {
+                    r.getDeliveryControl().moveDelivery(STOWED);
+                })
+                .lineToLinearHeading(carouselPos)
+                .build();
 
-            //TODO: Change this to the new delivery method for the other autons (Red carousel should be done already)
-            r.getDeliveryControl().deliverServoDeliver();
-            Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+        //Deliver Preload
+        r.getDeliveryControl().moveDelivery(deliveryPosition);
+        drive.followTrajectory(deliverPreload);
 
-            //Deliver duck to the field
-            drive.followTrajectory(toCarousel);
-            r.carouselCounterClockwise(NORMAL);
-            //TODO: Tune this time
-            Thread.sleep(1500);
-            r.carouselCounterClockwise(FAST);
-            Thread.sleep(1500);
-            r.stopCarousel();
+        //TODO: Change this to the new delivery method for the other autons (Red carousel should be done already)
+        r.getDeliveryControl().deliverServoDeliver();
+        Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
-            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(intermediateParkPose).build());
+        //Deliver duck to the field
+        drive.followTrajectory(toCarousel);
+        r.carouselCounterClockwise(NORMAL);
+        Thread.sleep(4000);
+        r.stopCarousel();
 
-            //Park
-            Thread.sleep((long) settings.getChosenParkDelay());
-            drive.followTrajectory(park);
-            r.getDeliveryControl().moveDelivery(INTAKE);
+        //Go to the "intermediate" parking point. Safe, out of the way spot, to wait for when we will park.
+        drive.followTrajectory(intermediatePark);
 
-            //TODO: Separate delivery pos for preload on low level
+        //Park
+        Thread.sleep((long) settings.getChosenParkDelay());
+        drive.followTrajectory(park);
+        r.getDeliveryControl().moveDelivery(INTAKE);
 
-            if(settings.getParkType() == REGULAR || settings.getParkType() == OFFSET) {
-                r.runIntakeForward();
-                r.moveUntilElement(drive, 10, this);
-                r.runIntakeBackwards();
-                drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .back(4).build());
-                Thread.sleep(1000);
-                r.stopIntake();
-            }
+        Thread.sleep(1000);
     }
 }

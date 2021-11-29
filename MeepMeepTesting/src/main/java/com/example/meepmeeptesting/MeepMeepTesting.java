@@ -9,7 +9,6 @@ import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeRedDark;
 
 public class MeepMeepTesting {
     public static void main(String[] args) {
-        // TODO: If you experience poor performance, enable this flag
         // System.setProperty("sun.java2d.opengl", "true");
 
         // Declare a MeepMeep instance
@@ -37,9 +36,10 @@ public class MeepMeepTesting {
                             .setReversed(true)
                             .splineToConstantHeading(new Vector2d(36, -67), Math.toRadians(180))
                             .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
+                            .splineToConstantHeading(new Vector2d(9, -48), toRadians(90))
+                            .splineToSplineHeading(new Pose2d(3, -38, toRadians(335)), toRadians(135))
                             .setReversed(false)
-                            .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
-                        .build())
+                            .build())
                 .start();
     }
 }

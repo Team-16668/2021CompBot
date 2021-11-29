@@ -32,7 +32,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static java.lang.Math.*;
 
-import androidx.appcompat.widget.VectorEnabledTintResources;
+import android.os.FileUriExposedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,37 +72,36 @@ public class RedDepot extends LinearOpMode {
 
         /**
          * Move one:
-         *  - After reading barcode, move to deliver preloaded box on the correct level
+         *  Deliver the preloaded box to the correct level
          */
         Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
                 .lineToLinearHeading(new Pose2d(5, -38, toRadians(335)))
                 .build();
 
-
         /**
-         * Move two:
-         *  - Move to shipping area and cycle
+         * All the movement for cycling
          */
+        Pose2d cycleDeliveryPos = new Pose2d(3, -38, toRadians(335));
+        //TODO: remove unused code once I get things working
 
-        Trajectory toWarehouse = drive.trajectoryBuilder(deliverPreload.end())
-                .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
-                })
-                .addTemporalMarker(0.5, () -> {
-                    r.getDeliveryControl().moveDelivery(STOWED);
-                })
-                .lineToLinearHeading(new Pose2d(12, -67, toRadians(0)))
-                .build();
+//        Trajectory toWarehouse = drive.trajectoryBuilder(deliverPreload.end())
+//                .addDisplacementMarker(() -> {
+//                    r.getDeliveryControl().deliverServoStow();
+//                })
+//                .addTemporalMarker(0.5, () -> {
+//                    r.getDeliveryControl().moveDelivery(STOWED);
+//                })
+//                .lineToLinearHeading(new Pose2d(12, -67, toRadians(0)))
+//                .build();
 
-
-        Trajectory freightPickup = drive.trajectoryBuilder(toWarehouse.end())
-                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
-                .splineToConstantHeading(new Vector2d(46, -67), 0)
-                .addDisplacementMarker(() -> {
-                    r.runIntakeForward();
-                })
-
-                .build();
+//        Trajectory freightPickup = drive.trajectoryBuilder(toWarehouse.end())
+//                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
+//                .splineToConstantHeading(new Vector2d(46, -67), 0)
+//                .addDisplacementMarker(() -> {
+//                    r.runIntakeForward();
+//                })
+//
+//                .build();
 
         List<Vector2d> pickupPoints = new ArrayList<Vector2d>() {{
            add(new Vector2d(46, -67));
@@ -112,9 +111,9 @@ public class RedDepot extends LinearOpMode {
 
         List<Trajectory> pickups = new ArrayList<>();
 
-        for(Vector2d pickup : pickupPoints) {
+        for(int i = 0; i < pickupPoints.size(); i++) {
 
-            pickups.add(drive.trajectoryBuilder(new Pose2d(5, -38, toRadians(335)))
+            pickups.add(drive.trajectoryBuilder(cycleDeliveryPos)
                     .addDisplacementMarker(() -> {
                         r.getDeliveryControl().deliverServoStow();
                     })
@@ -124,57 +123,78 @@ public class RedDepot extends LinearOpMode {
                     .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
                     .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
-                    .splineToConstantHeading(pickup, 0)
+                    .splineToConstantHeading(pickupPoints.get(i), 0)
                     .build());
         }
 
+        Vector2d outOfWarehousePos = new Vector2d(10, -67);
 
-        Trajectory deliverCycle = drive.trajectoryBuilder(toWarehouse.end())
+        Trajectory cycleDelivery = drive.trajectoryBuilder(new Pose2d(outOfWarehousePos.getX(), outOfWarehousePos.getY(), toRadians(0)))
             .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
-            .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
-            .build();
-
-        Trajectory toHub = drive.trajectoryBuilder(freightPickup.end())
-            .addDisplacementMarker(() -> {
-                r.stopIntake();
-                r.getDeliveryControl().moveDelivery(HIGH);
-            })
-            .lineToLinearHeading(new Pose2d(1, -38, toRadians(335)))
+            .lineToLinearHeading(cycleDeliveryPos)
             .build();
 
 
+//        Trajectory deliverCycle = drive.trajectoryBuilder(toWarehouse.end())
+//            .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
+//            .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
+//            .build();
+
+//        Trajectory toHub = drive.trajectoryBuilder(freightPickup.end())
+//            .addDisplacementMarker(() -> {
+//                r.stopIntake();
+//                r.getDeliveryControl().moveDelivery(HIGH);
+//            })
+//            .lineToLinearHeading(new Pose2d(1, -38, toRadians(335)))
+//            .build();
+
+//        Trajectory parkReg = drive.trajectoryBuilder(toHub.end())
+//                .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+//                .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
+//                .splineToSplineHeading(new Pose2d(12, -69, toRadians(0)), 0)
+//                .splineToConstantHeading(new Vector2d(40, -69), 0)
+//                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
+//                .build();
+
         /**
-         * Parking XD
+         *  Park
          */
-        Trajectory parkReg = drive.trajectoryBuilder(toHub.end())
-                .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
-                .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
-                .splineToSplineHeading(new Pose2d(12, -69, toRadians(0)), 0)
-                .splineToConstantHeading(new Vector2d(40, -69), 0)
-                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
-                .build();
-
-
-
-        /**
-         * Move three:
-         *  - Park
-         */
-        Trajectory intermediatePark = drive.trajectoryBuilder(toHub.end())
-                .lineToLinearHeading(new Pose2d(0, -60, 0))
-                .build();
-
-        TrajectoryBuilder oldParkBuilder = drive.trajectoryBuilder(intermediatePark.end());
+        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(cycleDeliveryPos);
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
-            oldParkBuilder
-                    .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
-                    .splineToConstantHeading(new Vector2d(36, -66), 0);
+            parkBuilder
+                    .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+                    .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
+                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
+                                    Arrays.asList(
+                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
+                                    )
+                            ),
+                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                    .addDisplacementMarker(() -> {
+                        r.stopIntake();
+                    });
             if(settings.getParkType() == OFFSET) {
-                oldParkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
+                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
         }
 
-        Trajectory oldPark = oldParkBuilder.build();
+        Trajectory park = parkBuilder.build();
+//        Trajectory intermediatePark = drive.trajectoryBuilder(toHub.end())
+//                .lineToLinearHeading(new Pose2d(0, -60, 0))
+//                .build();
+//
+//        TrajectoryBuilder oldParkBuilder = drive.trajectoryBuilder(intermediatePark.end());
+//        if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
+//            oldParkBuilder
+//                    .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
+//                    .splineToConstantHeading(new Vector2d(36, -66), 0);
+//            if(settings.getParkType() == OFFSET) {
+//                oldParkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
+//            }
+//        }
+//
+//        Trajectory oldPark = oldParkBuilder.build();
 
         telemetry.addData("Trajectories building complete", "");
         telemetry.update();
@@ -212,12 +232,14 @@ public class RedDepot extends LinearOpMode {
         double maximumDistance = 10;
         for(int i = 1; i <= 2; i++) {
             //Move to pick up the cube to cycle
-            //TODO: Go through and remove extra comments once everything is working correctly
 //            drive.followTrajectory(toWarehouse);
 //            drive.followTrajectory(freightPickup);
+
+            //Go to pick up the freight
             drive.followTrajectory(pickups.get(i));
 
             //Drive forward until the element is detected
+            //If a problem is detected the auton will get killed here
             boolean keepGoing = r.moveUntilElement(drive, maximumDistance, this);
             if(!keepGoing) {
                 r.runIntakeBackwards();
@@ -227,19 +249,24 @@ public class RedDepot extends LinearOpMode {
             }
 
             //Deliver the element
-            TrajectorySequence cycleDelivery = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+            TrajectorySequence deliver = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                     .addDisplacementMarker(() -> r.runIntakeBackwards())
                     .addTemporalMarker(1, () -> r.stopIntake())
                     .setReversed(true)
                     .splineToConstantHeading(new Vector2d(36, -67), toRadians(180))
+                    //TODO: Move this point closer to the barrier if possible
                     .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
-                    .setReversed(false)
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
-                    .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
+                    .splineToConstantHeading(new Vector2d(9, -48), toRadians(90))
+                    .splineToSplineHeading(cycleDeliveryPos, toRadians(135))
+                    .setReversed(false)
                     .build();
 
-            drive.followTrajectorySequence(cycleDelivery);
-            //TODO: Add a list feature to allow the robot to move to different points
+            //This should take us all the way to the shipping hub
+            drive.followTrajectorySequence(deliver);
+
+            //Move to the shipping hub to deliver the freight
+//            drive.followTrajectory(cycleDelivery);
 
 //            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
 //                    .addDisplacementMarker(() -> {
@@ -251,46 +278,23 @@ public class RedDepot extends LinearOpMode {
 //
 //            drive.followTrajectory(deliverCycle);
 
+            //Deliver the freight and move on
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
             maximumDistance += 4;
         }
 
-        //Move to pick up the cube to end the auton
-        drive.followTrajectory(parkReg);
-
-        //Drive forward until the element is detected
-//        r.moveUntilElement(drive, 15, this);
-
         //This time we're just picking up an element and then parking, so that's what we'll do. Then, we'll park in the correct position
         //Since the position we're moving from is unpredictable (we don't know how far we had to move to intake an element), the trajectory is getting built here
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(drive.getPoseEstimate());
-        if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder
-                    .splineToConstantHeading(new Vector2d(36, -66), 0, new MinVelocityConstraint(
-                                    Arrays.asList(
-                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
-                                    )
-                            ),
-                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                    .addDisplacementMarker(() -> {
-                        r.stopIntake();
-                    });
-            if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
-            }
-        }
-
-        Trajectory park = parkBuilder.build();
 
 
+        //Go park
+        Thread.sleep((long) settings.getChosenParkDelay());
         drive.followTrajectory(park);
 
 
         //Old parking code - Replacing it currently
-        //TODO: remove these trajectories from the code when we get the newer route working
 //        drive.followTrajectory(intermediatePark);
 //        drive.followTrajectory(park);
 

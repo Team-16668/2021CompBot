@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
@@ -37,7 +38,13 @@ public class GameTeleop extends LinearOpMode {
             //Loop for the control of the delivery arm and intake.
             r.armControlLoopTeleOp(gamepad2, telemetry);
 
-            //TODO: Add the ability to switch the alliance in case of emergency
+            //Switch the alliance in case of emergency
+            //TODO: test the alliance switching
+            r.switchAlliance();
+
+            telemetry.addData("Alliance", alliance);
+            telemetry.addLine("Press A and B on gamepad 1 to switch alliance");
+            telemetry.update();
 
         }
     }

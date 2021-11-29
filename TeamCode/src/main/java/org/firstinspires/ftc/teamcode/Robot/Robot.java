@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,8 +13,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
@@ -67,6 +70,8 @@ public class Robot {
     boolean resetEncoder;
     boolean intakeForward, intakeBackward;
     boolean intakeStopped = true;
+
+    boolean switchedAlliance = false;
 
     GamepadEx gamepad1;
     GamepadEx gamepad2;
@@ -261,7 +266,9 @@ public class Robot {
         intakeBackward = gamepad.left_trigger > 0;
 
         //Logic for Automatically moving the delivery arm
-        if(currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
+        //TODO: Make all these controls based on GamepadEx
+        if( gamepad2.wasJustPressed(A)//currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
+        ){
             if(getDeliveryControl().getServoPosition() == STOWED_SERVO) {
                 if (getDeliveryControl().getSlidePosition() != STOWED) {
                     getDeliveryControl().moveDelivery(STOWED);
@@ -308,7 +315,6 @@ public class Robot {
                 getDeliveryControl().moveDelivery(automaticPosition);
             }
         }
-
 
         //Reset the encoder when it has been manually moved to the bottom (hopefully this doesn't need to be used
         if(resetEncoder) {
@@ -373,6 +379,20 @@ public class Robot {
             if(getCarouselMotor().getPower() != 0) {
                 stopCarousel();
             }
+        }
+    }
+
+    public void switchAlliance() {
+        if(gamepad1.isDown(A) && gamepad1.isDown(B) && !switchedAlliance) {
+            if(alliance == RED) {
+                alliance = BLUE;
+            } else if(alliance == BLUE) {
+                alliance = RED;
+            }
+
+            switchedAlliance = true;
+        } else if(switchedAlliance && !gamepad1.isDown(A) && !gamepad1.isDown(B)) {
+            switchedAlliance = false;
         }
     }
 
@@ -476,7 +496,6 @@ public class Robot {
         return back_pipeline;
     }
 
-    //TODO: This closing code might be broken so be aware
     public void stopBackCamera() {
         back_webcam.stopStreaming();
         back_webcam.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
