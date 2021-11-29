@@ -47,15 +47,17 @@ public class RedCarousel extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        //r = new Robot(hardwareMap, true, new ShippingElementDetector());
-        r = new Robot(hardwareMap, true, new ShippingElementDetector(), true,
-                new DuckDetector(new Vector2d(8, 0), -62, telemetry));
+        r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
+//        r = new Robot(hardwareMap, true, new ShippingElementDetector(), true,
+//                new DuckDetector(new Vector2d(8, 0), -62, telemetry, drive));
 
         telemetry.addData("Got here", "indeed");
         telemetry.update();
         //TODO: Adjust this to reflect the actual time we have
-        settings = new AutonSettings(gamepad1, telemetry, 0, 10);
+        settings = new AutonSettings(gamepad1, telemetry, 0, 6);
+
+        r.getDashboard().startCameraStream(r.getFrontWebcam(), 30);
 
         drive.setPoseEstimate(new Pose2d(-36, -65, toRadians(270)));
 
@@ -79,8 +81,6 @@ public class RedCarousel extends LinearOpMode {
                 .lineToLinearHeading(new Pose2d(-29, -38, toRadians(215)))
                 .build();
 
-        telemetry.addData("Building trajectories", "toCarousel");
-        telemetry.update();
 
         /**
          * Go to the Carousel
@@ -102,7 +102,7 @@ public class RedCarousel extends LinearOpMode {
          * Detect and Deliver Duck
          */
         Trajectory detectDuck = drive.trajectoryBuilder(toCarousel.end())
-                .lineToLinearHeading( new Pose2d(-48, -48, toRadians(270)))
+                .lineToLinearHeading( new Pose2d(-50, -40, toRadians(270)))
                 .build();
 
         /**
@@ -121,9 +121,9 @@ public class RedCarousel extends LinearOpMode {
         TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR) {
             parkBuilder
-                    .splineToConstantHeading(new Vector2d(-12, -66), 0)
-                    .splineToConstantHeading(new Vector2d(12, -66), 0)
-                    .splineToConstantHeading(new Vector2d(38, -66), 0, new MinVelocityConstraint(
+                    .splineToConstantHeading(new Vector2d(-12, -65), 0)
+                    .splineToConstantHeading(new Vector2d(12, -65), 0)
+                    .splineToConstantHeading(new Vector2d(40, -65), 0, new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
@@ -131,12 +131,12 @@ public class RedCarousel extends LinearOpMode {
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
 
-            if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(38, -36), 0);
-            }
+//            if(settings.getParkType() == OFFSET) {
+//                parkBuilder.splineToConstantHeading(new Vector2d(38, -36), 0);
+//            }
 
         } else if (settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder.lineToLinearHeading(new Pose2d(-66, -36, 0));
+            parkBuilder.lineToLinearHeading(new Pose2d(-66, -40, 0));
         }
 
         Trajectory park = parkBuilder.build();
@@ -145,82 +145,101 @@ public class RedCarousel extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
-            telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
-            telemetry.addData("Is Duck Detected", ((DuckDetector) r.getFrontPipeline()).isDuckDetected());
-            telemetry.update();
-            Thread.sleep(50);
-        }
+                telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
+//                telemetry.addData("Is Duck Detected", ((DuckDetector) r.getFrontPipeline()).isDuckDetected());
+                telemetry.update();
+                Thread.sleep(50);
+            }
 
-        waitForStart();
+            waitForStart();
 
-        DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
-        r.stopBackCamera();
+            DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
+            r.stopBackCamera();
 
-        //Deliver Preload
-        r.getDeliveryControl().moveDelivery(deliveryPosition);
-        drive.followTrajectory(deliverPreload);
+            if(deliveryPosition == MID) {
+                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                        .lineToLinearHeading(new Pose2d(-28, -38, toRadians(215)))
+                        .build();
+            } else if(deliveryPosition == LOW) {
+                deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                        .lineToLinearHeading(new Pose2d(-27, -37, toRadians(215)))
+                        .build();
+            }
 
-        //TODO: Change this to the new delivery method for the other autons (Red carousel should be done already)
-        r.getDeliveryControl().deliverServoDeliver();
-        Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+            //Deliver Preload
+            r.getDeliveryControl().moveDelivery(deliveryPosition);
+            drive.followTrajectory(deliverPreload);
 
-        //Deliver duck to the field
-        drive.followTrajectory(toCarousel);
-        r.carouselCounterClockwise(NORMAL);
-        //TODO: Tune this time
-        Thread.sleep(2000);
-        r.carouselCounterClockwise(FAST);
-        Thread.sleep(1500);
-        r.stopCarousel();
-
-        //Score duck
-        drive.followTrajectory(detectDuck);
-
-        //Get duck information and close the camera
-        if(((DuckDetector) r.getFrontPipeline()).isDuckDetected()) {
-            ((DuckDetector) r.getFrontPipeline()).setRobotPose(drive.getPoseEstimate());
-            Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
-            r.stopFrontCamera();
-
-            //Pickup the duck
-            drive.followTrajectory(
-                    drive.trajectoryBuilder(drive.getPoseEstimate())
-                            .addDisplacementMarker(() -> {
-                                r.runIntakeForward();
-                            })
-                            .lineToConstantHeading(goToPoint)
-                            .build()
-            );
-
-            //Deliver the duck
-            Trajectory deliverDuck = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .addDisplacementMarker(() -> {
-                        r.stopIntake();
-                        r.getDeliveryControl().moveDelivery(HIGH);
-                    })
-                    .lineToLinearHeading(deliverDuckPose)
-                    .build();
-
-            drive.followTrajectory(deliverDuck);
+            //TODO: Change this to the new delivery method for the other autons (Red carousel should be done already)
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-            drive.followTrajectory(intermediatePark);
-        } else {
+
+            //Deliver duck to the field
+            drive.followTrajectory(toCarousel);
+            r.carouselCounterClockwise(NORMAL);
+            //TODO: Tune this time
+            Thread.sleep(1500);
+            r.carouselCounterClockwise(FAST);
+            Thread.sleep(1500);
+            r.stopCarousel();
+
+            //Score duck
+//            drive.followTrajectory(detectDuck);
+
+            //Get duck information and close the camera
+//            if(((DuckDetector) r.getFrontPipeline()).isDuckDetected()) {
+//
+//                Vector2d goToPoint = ((DuckDetector) r.getFrontPipeline()).getGoToPoint();
+//                if(goToPoint.getX() > -65 || goToPoint.getX() < -12) {
+//
+//                    //Pickup the duck
+//                    drive.followTrajectory(
+//                            drive.trajectoryBuilder(drive.getPoseEstimate())
+//                                    .addDisplacementMarker(() -> {
+//                                        r.runIntakeForward();
+//                                    })
+//                                    .lineToConstantHeading(goToPoint)
+//                                    .build()
+//                    );
+//                    r.stopFrontCamera();
+//
+//                    //Deliver the duck
+//                    Trajectory deliverDuck = drive.trajectoryBuilder(drive.getPoseEstimate())
+//                            .addDisplacementMarker(() -> {
+//                                r.getDeliveryControl().moveDelivery(HIGH);
+//                            })
+//                            .addTemporalMarker(1, () -> r.stopIntake())
+//                            .lineToLinearHeading(deliverDuckPose)
+//                            .build();
+//
+//                    drive.followTrajectory(deliverDuck);
+//                    r.getDeliveryControl().deliverServoDeliver();
+//                    Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+//                    drive.followTrajectory(intermediatePark);
+//                } else {
+//                    drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
+//                            .lineToLinearHeading(intermediateParkPose).build());
+//                }
+//            } else {
             drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
                     .lineToLinearHeading(intermediateParkPose).build());
-        }
+//            }
 
-        //Park
-        Thread.sleep((long) settings.getChosenParkDelay());
-        drive.followTrajectory(park);
-        r.getDeliveryControl().moveDelivery(INTAKE);
+            //Park
+            Thread.sleep((long) settings.getChosenParkDelay());
+            drive.followTrajectory(park);
+            r.getDeliveryControl().moveDelivery(INTAKE);
 
-        if(settings.getParkType() == REGULAR || settings.getParkType() == OFFSET) {
-            r.runIntakeForward();
-            r.moveUntilElement(drive, 4, this);
-            r.stopIntake();
-        }
+            //TODO: Separate delivery pos for preload on low level
 
-        Thread.sleep(1000);
+            if(settings.getParkType() == REGULAR || settings.getParkType() == OFFSET) {
+                r.runIntakeForward();
+                r.moveUntilElement(drive, 10, this);
+                r.runIntakeBackwards();
+                drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .back(4).build());
+                Thread.sleep(1000);
+                r.stopIntake();
+            }
     }
 }

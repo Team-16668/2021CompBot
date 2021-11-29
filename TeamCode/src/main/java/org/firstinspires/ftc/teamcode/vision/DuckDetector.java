@@ -13,6 +13,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -30,10 +31,10 @@ import java.util.List;
 public class DuckDetector extends OpenCvPipeline {
 
     //TODO: replace this with the correct color range
-    public static int hue1 = 20;
+    public static int hue1 = 25;
     public static int saturation1 = 100;
     public static int value1 = 0;
-    public static int hue2 = 40;
+    public static int hue2 = 30;
     public static int saturation2 = 255;
     public static int value2 = 255;
     public Scalar lowerB = new Scalar(hue1, saturation1, value1);
@@ -67,6 +68,7 @@ public class DuckDetector extends OpenCvPipeline {
     private ShippingElementDetector.Mats activeMat = INPUT;
 
     Telemetry telemetry;
+    SampleMecanumDrive drive;
 
 
     /**
@@ -92,9 +94,10 @@ public class DuckDetector extends OpenCvPipeline {
 
      * @param yLine the y position that the robot will ultimately move towards
      */
-    public DuckDetector(Vector2d relativeCameraPoint, double yLine, Telemetry telemetry) {
+    public DuckDetector(Vector2d relativeCameraPoint, double yLine, Telemetry telemetry, SampleMecanumDrive drive) {
         this.relativeCameraPoint = relativeCameraPoint;
         this.yLine = yLine;
+        this.drive = drive;
 
         goToPoint = new Vector2d(robotPose.getX() + relativeCameraPoint.getX(), yLine);
 
@@ -118,6 +121,7 @@ public class DuckDetector extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
+        setRobotPose(drive.getPoseEstimate());
         lowerB = new Scalar(hue1, saturation1, value1);
         upperB = new Scalar(hue2, saturation2, value2);
 
@@ -161,6 +165,8 @@ public class DuckDetector extends OpenCvPipeline {
 
             double rawAngleToDuck = atan2(correctedDuckCenter.y, correctedDuckCenter.x);
             correctedAngleToDuck = correctedDuckCenter.x > 0 ? toRadians(90) - rawAngleToDuck : - (rawAngleToDuck - toRadians(90));
+
+            final double FUDGE_FACTOR = toRadians(5);
 
             double xOffset = abs(yLine - (fieldCameraPose.getY())) * tan(abs(correctedAngleToDuck));
 

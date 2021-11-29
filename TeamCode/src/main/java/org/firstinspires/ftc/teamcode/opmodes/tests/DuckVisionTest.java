@@ -26,12 +26,12 @@ public class DuckVisionTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        DuckDetector pipeline = new DuckDetector(new Vector2d(8, 0), -62, telemetry);
-        r = new Robot(hardwareMap, false, null, true, pipeline);
 
         drive = new SampleMecanumDrive(hardwareMap);
+        DuckDetector pipeline = new DuckDetector(new Vector2d(8, 0), -62, telemetry, drive);
+        r = new Robot(hardwareMap, false, null, true, pipeline);
 
-        drive.setPoseEstimate(new Pose2d(-36, -24, toRadians(270)));
+        drive.setPoseEstimate(new Pose2d(-52.025, -35.653, toRadians(270.38)));
 
         waitForStart();
 
