@@ -1,6 +1,9 @@
 package com.example.meepmeeptesting;
 
+import static com.noahbres.meepmeep.core.ExtensionsKt.toRadians;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeRedDark;
 
@@ -19,20 +22,25 @@ public class MeepMeepTesting {
                 // Background opacity from 0-1
                 .setBackgroundAlpha(1f)
                 // Set constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
-                .setConstraints(61.58375, 52.48291908330528, Math.toRadians(315.445), Math.toRadians(278.4305333333333), 15)
-                .setStartPose(new Pose2d())
+                .setConstraints(61.58375, 52.48291908330528, toRadians(315.445), toRadians(278.4305333333333), 15)
+                .setBotDimensions(12.5, 14.2)
+//                .followTrajectorySequence(drive ->
+//                        drive.trajectorySequenceBuilder(new Pose2d(5, -38, toRadians(335)))
+//                                .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
+//                                .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
+//                                .splineToConstantHeading(new Vector2d(46, -67), 0)
+//                                .build()
+//                )
+
                 .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .build()
-                )
+                    drive.trajectorySequenceBuilder(new Pose2d(42, -67, toRadians(0)))
+                            .setReversed(true)
+                        .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
+                            .setReversed(false)
+//                        .splineToConstantHeading(new Vector2d(8, -48), toRadians(90))
+//                        .splineToSplineHeading(new Pose2d(3, -38, toRadians(335)), toRadians(135))
+                        .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
+                        .build())
                 .start();
     }
 }

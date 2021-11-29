@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
@@ -91,20 +92,26 @@ public class RedDepot extends LinearOpMode {
 
         Trajectory freightPickup = drive.trajectoryBuilder(toWarehouse.end())
                 .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
-                .splineToConstantHeading(new Vector2d(46, -67), 0
-//                        , new MinVelocityConstraint(
-//                                Arrays.asList(
-//                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-//                                        new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
-//                                )
-//                        ),
-//                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                )
+                .splineToConstantHeading(new Vector2d(46, -67), 0)
                 .addDisplacementMarker(() -> {
                     r.runIntakeForward();
                 })
 
                 .build();
+
+        Trajectory newPickup = drive.trajectoryBuilder(new Pose2d(5, -38, toRadians(335)))
+                .addDisplacementMarker(() -> {
+                    r.getDeliveryControl().deliverServoStow();
+                })
+                .addTemporalMarker(0.5, () -> {
+                    r.getDeliveryControl().moveDelivery(STOWED);
+                })
+                .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
+                .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
+                .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
+                .splineToConstantHeading(new Vector2d(46, -67), 0)
+                .build();
+
 
         Trajectory deliverCycle = drive.trajectoryBuilder(toWarehouse.end())
             .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
@@ -145,15 +152,7 @@ public class RedDepot extends LinearOpMode {
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
             oldParkBuilder
                     .splineToConstantHeading(new Vector2d(12, -66), toRadians(0))
-                    .splineToConstantHeading(new Vector2d(36, -66), 0
-//                            , new MinVelocityConstraint(
-//                                    Arrays.asList(
-//                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-//                                            new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
-//                                    )
-//                            ),
-//                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL)
-                    );
+                    .splineToConstantHeading(new Vector2d(36, -66), 0);
             if(settings.getParkType() == OFFSET) {
                 oldParkBuilder.splineToConstantHeading(new Vector2d(36, -36), 0);
             }
@@ -195,11 +194,12 @@ public class RedDepot extends LinearOpMode {
 
         //Attempt cycles as long as we have time left on the clock :D
         double maximumDistance = 10;
-        //TODO: Make tihs time the time needed to park
         for(int i = 1; i <= 2; i++) {
             //Move to pick up the cube to cycle
-            drive.followTrajectory(toWarehouse);
-            drive.followTrajectory(freightPickup);
+            //TODO: Go through and remove extra comments once everything is working correctly
+//            drive.followTrajectory(toWarehouse);
+//            drive.followTrajectory(freightPickup);
+            drive.followTrajectory(newPickup);
 
             //Drive forward until the element is detected
             boolean keepGoing = r.moveUntilElement(drive, maximumDistance, this);
@@ -211,15 +211,27 @@ public class RedDepot extends LinearOpMode {
             }
 
             //Deliver the element
-            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .addDisplacementMarker(() -> {
-                        r.runIntakeBackwards();
-                    })
+            TrajectorySequence cycleDelivery = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                    .addDisplacementMarker(() -> r.runIntakeBackwards())
                     .addTemporalMarker(1, () -> r.stopIntake())
-                    .lineToLinearHeading(new Pose2d(12, -67, toRadians(0)))
-                    .build());
+                    .setReversed(true)
+                    .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
+                    .setReversed(false)
+                    .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
+                    .lineToLinearHeading(new Pose2d(3, -38, toRadians(335)))
+                    .build();
 
-            drive.followTrajectory(deliverCycle);
+            drive.followTrajectorySequence(cycleDelivery);
+
+//            drive.followTrajectory(drive.trajectoryBuilder(drive.getPoseEstimate())
+//                    .addDisplacementMarker(() -> {
+//                        r.runIntakeBackwards();
+//                    })
+//                    .addTemporalMarker(1, () -> r.stopIntake())
+//                    .lineToLinearHeading(new Pose2d(12, -67, toRadians(0)))
+//                    .build());
+//
+//            drive.followTrajectory(deliverCycle);
 
             r.getDeliveryControl().deliverServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
