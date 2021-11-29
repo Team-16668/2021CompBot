@@ -389,6 +389,8 @@ public class Robot {
 
         boolean element = false;
         boolean movedTooFar = false;
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
 
         while(!element && !movedTooFar && opMode.opModeIsActive()) {
             drive.update();
@@ -396,7 +398,7 @@ public class Robot {
             element = getDeliveryControl().isElementLoaded();
 
             movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
-            if(movedTooFar) {
+            if(movedTooFar || timer.seconds() > 5) {
                 drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
                 return false;
             }

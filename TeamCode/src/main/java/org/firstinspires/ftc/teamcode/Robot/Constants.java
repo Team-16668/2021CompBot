@@ -11,23 +11,23 @@ public class Constants {
     public static final int DELIVERY_SERVO_WAIT_TIME = 1000;
     public static final double DELIVERY_EXTENDED_COUNTS = 850;
     public static final double DELIVERY_MIDDLE_COUNTS = 600;
-    public static final double DELIVERY_LOW_COUNTS = 425;
+    public static final double DELIVERY_LOW_COUNTS = 325;
     public static final double DELIVERY_STOWED_COUNTS = 200;
     public static final double DELIVERY_INTAKE_COUNTS = 0;
 
     //Distance sensor threshold (in MM)
-    public static final double ELEMENT_THRESHOLD = 85;
+    public static final double ELEMENT_THRESHOLD = 90;
 
     //Delivery Motor PIDF
     public static PIDFCoefficients DELIVERY_PID = new PIDFCoefficients(0, 0, 0, 0);
 
     //Intake Element speed
-    public static final double INTAKE_ELEMENT_SPEED = 0.25;
+    public static final double INTAKE_ELEMENT_SPEED = 0.075;
 
     public static final double INTAKE_SPEED = 1.00;
     public static final double DELIVERY_SPEED = 0.50;
-    public static final double CAROUSEL_RPM = 265 * 0.8;
-    public static final double CAROUSEL_FAST_RPM = 435 * 0.8;
+    public static final double CAROUSEL_RPM = 265 * 0.9;
+    public static final double CAROUSEL_FAST_RPM = 435 * 0.9;
     public static final double MOTOR_TICKS_435_RPM = 384.5;
 
     //Different Drivetrain speeds
