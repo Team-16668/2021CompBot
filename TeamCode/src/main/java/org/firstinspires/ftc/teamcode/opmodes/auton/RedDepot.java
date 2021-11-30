@@ -120,9 +120,9 @@ public class RedDepot extends LinearOpMode {
                     .addTemporalMarker(0.5, () -> {
                         r.getDeliveryControl().moveDelivery(STOWED);
                     })
-                    .splineToSplineHeading(new Pose2d(8, -48, toRadians(0)), toRadians(270))
+                    .splineTo(new Vector2d(8, -48), toRadians(270))
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(INTAKE))
-                    .splineToConstantHeading(new Vector2d(16, -67), toRadians(0))
+                    .splineToSplineHeading(new Pose2d(18, -67, toRadians(0)), toRadians(0))
                     .splineToConstantHeading(pickupPoints.get(i), 0)
                     .build());
         }
@@ -255,9 +255,9 @@ public class RedDepot extends LinearOpMode {
                     .setReversed(true)
                     .splineToConstantHeading(new Vector2d(36, -67), toRadians(180))
                     //TODO: Move this point closer to the barrier if possible
-                    .splineToConstantHeading(new Vector2d(10, -67), toRadians(180))
+                    .splineToConstantHeading(new Vector2d(18, -67), toRadians(180))
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
-                    .splineToConstantHeading(new Vector2d(9, -48), toRadians(90))
+                    //.splineToConstantHeading(new Vector2d(9, -48), toRadians(90))
                     .splineToSplineHeading(cycleDeliveryPos, toRadians(135))
                     .setReversed(false)
                     .build();
