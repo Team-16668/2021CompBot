@@ -12,6 +12,7 @@ import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.RED;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSET;
@@ -76,15 +78,12 @@ public class RedDepot extends LinearOpMode {
          * Move one:
          *  Deliver the preloaded box to the correct level
          */
-        Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(5, -38, toRadians(335)))
-                .build();
+        Trajectory deliverPreload;
 
         /**
          * All the movement for cycling
          */
         Pose2d cycleDeliveryPos = new Pose2d(-4, -46, toRadians(300));
-        //TODO: remove unused code once I get things working
 
         /**
          *  Park
@@ -102,9 +101,7 @@ public class RedDepot extends LinearOpMode {
                                     )
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                    .addDisplacementMarker(() -> {
-                        r.stopIntake();
-                    });
+                   ;
             if(settings.getParkType() == OFFSET) {
                 parkBuilder.lineToConstantHeading(new Vector2d(32, -42));
             }
@@ -118,7 +115,12 @@ public class RedDepot extends LinearOpMode {
         while(!opModeIsActive()) {
             telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
             telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
+            telemetry.addData("Element loaded", r.getDeliveryControl().isElementLoaded());
+            telemetry.addData("Distance sensor", r.getDeliveryControl().getDistanceSensor().getDistance(MM));
             telemetry.update();
+
+            r.lightsLoop();
+
             Thread.sleep(50);
         }
 
@@ -153,7 +155,7 @@ public class RedDepot extends LinearOpMode {
         for(int i = 0; i < pickupPoints.size(); i++) {
 
             Pose2d startPose = cycleDeliveryPos;
-            if(deliveryPosition == LOW && i == 0) {
+            if(i == 0) {
                 startPose = deliverPreload.end();
             }
 
@@ -185,10 +187,6 @@ public class RedDepot extends LinearOpMode {
         boolean success;
         double maximumDistance = 10;
         for(int i = 0; i < 1; i++) {
-            //Move to pick up the cube to cycle
-//            drive.followTrajectory(toWarehouse);
-//            drive.followTrajectory(freightPickup);
-
             //Go to pick up the freight
             drive.followTrajectorySequence(pickups.get(i));
 
@@ -212,7 +210,6 @@ public class RedDepot extends LinearOpMode {
             TrajectorySequence deliver = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                     .addDisplacementMarker(() -> r.runIntakeBackwards())
                     .addTemporalMarker(1, () -> r.stopIntake())
-//                    .lineToConstantHeading(new Vector2d(36, -67))
                     .lineToConstantHeading(new Vector2d(14, -67))
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
                     .lineToLinearHeading(cycleDeliveryPos)
@@ -229,7 +226,6 @@ public class RedDepot extends LinearOpMode {
         }
 
         //Go park
-        Thread.sleep((long) settings.getChosenParkDelay());
         drive.followTrajectorySequence(park);
 
 

@@ -122,7 +122,9 @@ public class DeliveryArmControl {
     public boolean isElementLoaded() {
         return distanceSensor.getDistance(MM) < ELEMENT_THRESHOLD ? true : false;
     }
-
+    public boolean isDistanceError() {
+        return distanceSensor.getDistance(MM) > 200 ? true : false;
+    }
     public DeliveryServoPositions getServoPosition() {
         return servoPosition;
     }

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.auton;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.*;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.*;
@@ -49,8 +50,7 @@ public class RedCarousel extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         r = new Robot(hardwareMap, true, new ShippingElementDetector());
         drive = new SampleMecanumDrive(hardwareMap);
-//        r = new Robot(hardwareMap, true, new ShippingElementDetector(), true,
-//                new DuckDetector(new Vector2d(8, 0), -62, telemetry, drive));
+
 
         telemetry.addData("Got here", "indeed");
         telemetry.update();
@@ -109,8 +109,13 @@ public class RedCarousel extends LinearOpMode {
         telemetry.update();
 
         while(!opModeIsActive()) {
+                telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
                 telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
+                telemetry.addData("Element loaded", r.getDeliveryControl().isElementLoaded());
+                telemetry.addData("Distance sensor", r.getDeliveryControl().getDistanceSensor().getDistance(MM));
                 telemetry.update();
+
+                r.lightsLoop();
                 Thread.sleep(50);
         }
 
@@ -140,7 +145,7 @@ public class RedCarousel extends LinearOpMode {
         }
 
         /**
-         * Build the trajectory to park
+         * Build the trajectory to go to the carousel
          * We do this after match start becuase the spot we're coming from (at the shipping hub) varies
          */
 

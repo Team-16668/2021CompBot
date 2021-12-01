@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 
@@ -40,10 +41,15 @@ public class GameTeleop extends LinearOpMode {
 
             //Switch the alliance in case of emergency
             //TODO: test the alliance switching
-            r.switchAlliance();
+            r.switchAlliance(gamepad1);
+
+            //Change the lights based on the presence of an element
+            r.lightsLoop();
 
             telemetry.addData("Alliance", alliance);
             telemetry.addLine("Press A and B on gamepad 1 to switch alliance");
+            telemetry.addData("Element loaded", r.getDeliveryControl().isElementLoaded());
+            telemetry.addData("Distance readout", r.getDeliveryControl().getDistanceSensor().getDistance(MM));
             telemetry.update();
 
         }

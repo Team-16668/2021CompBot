@@ -5,6 +5,8 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,6 +16,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.*;
+import static com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
@@ -55,6 +58,8 @@ public class Robot {
     DcMotorEx intakeMotor;
     DcMotorEx deliveryMotor;
     DcMotorEx carouselMotor;
+    RevBlinkinLedDriver lights;
+    BlinkinPattern pattern;
 
     OpenCvWebcam back_webcam;
     OpenCvPipeline back_pipeline;
@@ -86,6 +91,8 @@ public class Robot {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
         deliveryMotor = hardwareMap.get(DcMotorEx.class, DELIVERY_MOTOR);
         carouselMotor = hardwareMap.get(DcMotorEx.class, CAROUSEL_MOTOR);
+        lights = hardwareMap.get(RevBlinkinLedDriver.class, LIGHTS);
+        pattern = CP1_SHOT;
 
         deliveryMotor.setDirection(REVERSE);
 
@@ -248,10 +255,6 @@ public class Robot {
          *  Left trigger: Intake Backward
          */
 
-        telemetry.addData("Element loaded", getDeliveryControl().isElementLoaded());
-        telemetry.addData("Distance readout", getDeliveryControl().getDistanceSensor().getDistance(MM));
-        telemetry.update();
-
         currDeliveryAuto = gamepad.a;
         currServoSwitch = gamepad.x;
         resetEncoder = gamepad.y;
@@ -382,8 +385,12 @@ public class Robot {
         }
     }
 
-    public void switchAlliance() {
-        if(gamepad1.isDown(A) && gamepad1.isDown(B) && !switchedAlliance) {
+    /**
+     * Looped code to switch alliance in case it is required because of an emergency
+     * @param gamepad
+     */
+    public void switchAlliance(Gamepad gamepad) {
+        if(gamepad.a && gamepad.b && !switchedAlliance) {
             if(alliance == RED) {
                 alliance = BLUE;
             } else if(alliance == BLUE) {
@@ -391,8 +398,24 @@ public class Robot {
             }
 
             switchedAlliance = true;
-        } else if(switchedAlliance && !gamepad1.isDown(A) && !gamepad1.isDown(B)) {
+        } else if(switchedAlliance && !gamepad.a && !gamepad.b) {
             switchedAlliance = false;
+        }
+    }
+
+    /**
+     * Loop for the lights to allow them to change colors based on the element
+     */
+    public void lightsLoop() {
+        if(getDeliveryControl().isElementLoaded() && pattern != LOADED_PATTERN) {
+            lights.setPattern(LOADED_PATTERN);
+            pattern = LOADED_PATTERN;
+        } else if(getDeliveryControl().isDistanceError() && pattern != ERROR_PATTERN) {
+            lights.setPattern(ERROR_PATTERN);
+            pattern = ERROR_PATTERN;
+        } else if(pattern != UNLOADED_PATTERN){
+            lights.setPattern(UNLOADED_PATTERN);
+            pattern = UNLOADED_PATTERN;
         }
     }
 
@@ -409,16 +432,19 @@ public class Robot {
 
         boolean element = false;
         boolean movedTooFar = false;
+        boolean error = false;
+
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
 
-        while(!element && !movedTooFar && opMode.opModeIsActive()) {
+        while(!element && !movedTooFar && !error && opMode.opModeIsActive()) {
             drive.update();
             Thread.sleep(50);
             element = getDeliveryControl().isElementLoaded();
 
             movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
-            if(movedTooFar || timer.seconds() > 5) {
+            error = getDeliveryControl().isDistanceError();
+            if(movedTooFar || timer.seconds() > 5 || error) {
                 drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
                 return false;
             }

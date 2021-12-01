@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
+import static com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern.*;
+
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @Config
@@ -35,6 +39,11 @@ public class Constants {
     public static final double NORMAL_SPEED = 0.55;
     public static final double SLOW_SPEED = 0.25;
 
+    //Patterns for the lights
+    public static final BlinkinPattern LOADED_PATTERN = GREEN;
+    public static final BlinkinPattern UNLOADED_PATTERN = BLACK;
+    public static final BlinkinPattern ERROR_PATTERN = RED;
+
     //Hardware ID's
     public static final String LEFT_FRONT = "left_front";
     public static final String LEFT_BACK = "left_back";
@@ -48,4 +57,5 @@ public class Constants {
     public static final String BACK_CAM = "back_webcam";
     public static final String FRONT_CAM = "front_webcam";
     public static final String DELIVERY_DISTANCE = "delivery_distance";
+    public static final String LIGHTS = "lights";
 }

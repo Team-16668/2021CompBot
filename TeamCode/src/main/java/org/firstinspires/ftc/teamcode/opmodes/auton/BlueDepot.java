@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstra
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
+import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -16,8 +17,11 @@ import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.BLUE;
 import static org.firstinspires.ftc.teamcode.Robot.Alliance.alliance;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSET;
@@ -27,19 +31,19 @@ import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static java.lang.Math.toRadians;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by: barta
  * On: 11/12/2021
  */
 
-
-//TODO: Properly update this to use the different route we're running for RedDepot
-//TODO: Implement new delivery process (putting the delivery down while moving)
 @Autonomous(name = "Blue Depot")
 public class BlueDepot extends LinearOpMode {
 
@@ -60,6 +64,7 @@ public class BlueDepot extends LinearOpMode {
 
         telemetry.addData("Status", "Building trajectories");
         telemetry.update();
+        Timing.Timer timer = new Timing.Timer(30);
 
         /**
          * Build Trajectories here
@@ -69,55 +74,24 @@ public class BlueDepot extends LinearOpMode {
          * Move one:
          *  - After reading barcode, move to deliver preloaded box on the correct level
          */
-        Trajectory deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(5, 38, toRadians(35)))
-                .build();
-
+        Trajectory deliverPreload;
 
         /**
-         * Move two:
-         *  - Move to shipping area and cycle
+         * All the movement for cycling
          */
-        Trajectory cycle = drive.trajectoryBuilder(deliverPreload.end())
-                .splineToSplineHeading(new Pose2d(12, 66, toRadians(0)), 0)
-                .addTemporalMarker(5, () -> {
-                    r.runIntakeForward();
-                    r.getDeliveryControl().moveDelivery(INTAKE);
-                })
-                .splineToSplineHeading(new Pose2d(42, 66, toRadians(0)), 0, new MinVelocityConstraint(
-                                Arrays.asList(
-                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                        new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                )
-                        ),
-                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .splineToSplineHeading(new Pose2d(12, 66), 0, new MinVelocityConstraint(
-                                Arrays.asList(
-                                        new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                        new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                )
-                        ),
-                        new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .addDisplacementMarker(() -> {
-                    r.stopIntake();
-                    r.getDeliveryControl().moveDelivery(HIGH);
-                })
-                .splineToSplineHeading(new Pose2d(6, 36, toRadians(135)), toRadians(135))
-                .build();
+        Pose2d cycleDeliveryPos = new Pose2d(-4, 46, toRadians(60));
 
         /**
          * Move three:
          *  - Park
          */
-        Trajectory intermediatePark = drive.trajectoryBuilder(deliverPreload.end())
-                .lineToLinearHeading(new Pose2d(0, 60, 0))
-                .build();
-
-        TrajectoryBuilder parkBuilder = drive.trajectoryBuilder(intermediatePark.end());
+        TrajectorySequenceBuilder parkBuilder = drive.trajectorySequenceBuilder(cycleDeliveryPos);
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
             parkBuilder
-                    .splineToConstantHeading(new Vector2d(12, 69), toRadians(0))
-                    .splineToConstantHeading(new Vector2d(38, 69), 0, new MinVelocityConstraint(
+                    .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+                    .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
+                    .lineToLinearHeading(new Pose2d(12, 69, 0))
+                    .lineToConstantHeading(new Vector2d(32, 69), new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
@@ -125,11 +99,11 @@ public class BlueDepot extends LinearOpMode {
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.splineToConstantHeading(new Vector2d(38, 38), 0);
+                parkBuilder.lineToConstantHeading(new Vector2d(32, 42));
             }
         }
 
-        Trajectory park = parkBuilder.build();
+        TrajectorySequence park = parkBuilder.build();
 
         telemetry.addData("Trajectories building complete", "");
         telemetry.update();
@@ -137,7 +111,11 @@ public class BlueDepot extends LinearOpMode {
         while(!opModeIsActive()) {
             telemetry.addData("Detected duck position", ((ShippingElementDetector) r.getBackPipeline()).getBarcodePosition().name());
             telemetry.addData("Detected Position", ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition().name());
+            telemetry.addData("Element loaded", r.getDeliveryControl().isElementLoaded());
+            telemetry.addData("Distance sensor", r.getDeliveryControl().getDistanceSensor().getDistance(MM));
             telemetry.update();
+
+            r.lightsLoop();
             Thread.sleep(50);
         }
 
@@ -145,10 +123,46 @@ public class BlueDepot extends LinearOpMode {
 
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
 
-        if(deliveryPosition == LOW) {
+
+        if(deliveryPosition ==HIGH) {
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-3, 43, toRadians(60)))
+                    .build();
+        } else if(deliveryPosition == MID) {
+            deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
+                    .lineToLinearHeading(new Pose2d(-3, 46, toRadians(60)))
+                    .build();
+        } else {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
                     .lineToLinearHeading(new Pose2d(4, 38, toRadians(35)))
                     .build();
+        }
+
+        List<Vector2d> pickupPoints = new ArrayList<Vector2d>() {{
+            add(new Vector2d(40, 67));
+        }};
+
+        List<TrajectorySequence> pickups = new ArrayList<>();
+
+        for(int i = 0; i < pickupPoints.size(); i++) {
+
+            Pose2d startPose = cycleDeliveryPos;
+            if(i == 0) {
+                startPose = deliverPreload.end();
+            }
+
+            TrajectorySequence trajectory;
+            TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(startPose)
+                    .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+                    .addTemporalMarker(1, () -> r.getDeliveryControl().moveDelivery(INTAKE))
+                    .lineToLinearHeading(new Pose2d(12, 67, toRadians(0)))
+                    .lineToConstantHeading(pickupPoints.get(i))
+                    .addDisplacementMarker(() -> r.runIntakeForward())
+                    ;
+
+            trajectory = builder.build();
+
+            pickups.add(trajectory);
         }
 
         r.stopBackCamera();
@@ -158,21 +172,55 @@ public class BlueDepot extends LinearOpMode {
 
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        r.getDeliveryControl().deliverServoStow();
-        Thread.sleep(500);
-        r.getDeliveryControl().moveDelivery(STOWED);
 
-        //drive.followTrajectory(cycle);
-        //r.getDeliveryControl().deliverServoDeliver();
-        //Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        //r.getDeliveryControl().deliverServoStow();
-        //Thread.sleep(500);
-        //r.getDeliveryControl().moveDelivery(STOWED);
+        //Attempt cycles as long as we have time left on the clock :D
 
-        drive.followTrajectory(intermediatePark);
-        drive.followTrajectory(park);
+        boolean success;
+        double maximumDistance = 10;
+        for(int i = 0; i < 1; i++) {
+            //Go to pick up the freight
+            drive.followTrajectorySequence(pickups.get(i));
+
+            //Drive forward until the element is detected
+            //If a problem is detected the auton will get killed here
+            success = r.moveUntilElement(drive, maximumDistance, this);
+            if(!success) {
+                r.runIntakeBackwards();
+                Thread.sleep(2000);
+                r.stopIntake();
+                if(settings.getParkType() == OFFSET) {
+                    drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                            .lineToConstantHeading(new Vector2d(32, 66))
+                            .lineToConstantHeading(new Vector2d(32, 36))
+                            .build());
+                }
+                stop();
+            }
+
+            //Deliver the element
+            TrajectorySequence deliver = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                    .addDisplacementMarker(() -> r.runIntakeBackwards())
+                    .addTemporalMarker(1, () -> r.stopIntake())
+                    .lineToConstantHeading(new Vector2d(14, 67))
+                    .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
+                    .lineToLinearHeading(cycleDeliveryPos)
+                    .build();
+
+            //This should take us all the way to the shipping hub
+            drive.followTrajectorySequence(deliver);
+
+            //Deliver the freight and move on
+            r.getDeliveryControl().deliverServoDeliver();
+            Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+
+            maximumDistance += 4;
+        }
+
+        //Park
+        drive.followTrajectorySequence(park);
+
+        //Put the intake back in the right position for teleop
         r.getDeliveryControl().moveDelivery(INTAKE);
-
         Thread.sleep(1000);
 
     }
