@@ -55,7 +55,7 @@ public class RedCarousel extends LinearOpMode {
         telemetry.addData("Got here", "indeed");
         telemetry.update();
         //TODO: Adjust this to reflect the actual time we have
-        settings = new AutonSettings(gamepad1, telemetry, 0, 6);
+        settings = new AutonSettings(gamepad1, telemetry, 0, 10);
 
         r.getDashboard().startCameraStream(r.getFrontWebcam(), 30);
 
@@ -92,7 +92,7 @@ public class RedCarousel extends LinearOpMode {
                 parkBuilder
                         .splineToConstantHeading(new Vector2d(-12, -65), 0)
                         .splineToConstantHeading(new Vector2d(12, -65), 0)
-                        .splineToConstantHeading(new Vector2d(40, -65), 0, new MinVelocityConstraint(
+                        .splineToConstantHeading(new Vector2d(45, -65), 0, new MinVelocityConstraint(
                                         Arrays.asList(
                                                 new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                                 new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)

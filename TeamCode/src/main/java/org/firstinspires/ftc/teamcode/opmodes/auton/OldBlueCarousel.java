@@ -39,7 +39,7 @@ import java.util.Arrays;
  */
 
 @Disabled
-@Autonomous(name = "Blue Carousel")
+@Autonomous(name = "Old Blue Carousel")
 //TODO: Delete me when the new one is working
 public class OldBlueCarousel extends LinearOpMode {
 

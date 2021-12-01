@@ -139,7 +139,7 @@ public class BlueDepot extends LinearOpMode {
         }
 
         List<Vector2d> pickupPoints = new ArrayList<Vector2d>() {{
-            add(new Vector2d(40, 67));
+            add(new Vector2d(43, 67));
         }};
 
         List<TrajectorySequence> pickups = new ArrayList<>();
@@ -173,6 +173,10 @@ public class BlueDepot extends LinearOpMode {
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
+        r.runIntakeForward();
+        Thread.sleep(2000);
+        r.stopIntake();
+
         //Attempt cycles as long as we have time left on the clock :D
 
         boolean success;
@@ -184,6 +188,7 @@ public class BlueDepot extends LinearOpMode {
             //Drive forward until the element is detected
             //If a problem is detected the auton will get killed here
             success = r.moveUntilElement(drive, maximumDistance, this);
+
             if(!success) {
                 r.runIntakeBackwards();
                 Thread.sleep(2000);

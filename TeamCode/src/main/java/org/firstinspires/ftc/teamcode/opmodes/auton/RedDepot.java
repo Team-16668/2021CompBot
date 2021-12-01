@@ -83,7 +83,7 @@ public class RedDepot extends LinearOpMode {
         /**
          * All the movement for cycling
          */
-        Pose2d cycleDeliveryPos = new Pose2d(-4, -46, toRadians(300));
+        Pose2d cycleDeliveryPos = new Pose2d(-5, -46, toRadians(300));
 
         /**
          *  Park
@@ -94,7 +94,7 @@ public class RedDepot extends LinearOpMode {
                     .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
                     .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
                     .lineToLinearHeading(new Pose2d(12, -66, 0))
-                    .lineToConstantHeading(new Vector2d(32, -66), new MinVelocityConstraint(
+                    .lineToConstantHeading(new Vector2d(38, -66), new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(20, DriveConstants.TRACK_WIDTH)
@@ -103,7 +103,7 @@ public class RedDepot extends LinearOpMode {
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
                    ;
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.lineToConstantHeading(new Vector2d(32, -42));
+                parkBuilder.lineToConstantHeading(new Vector2d(34, -42));
             }
         }
 
@@ -133,7 +133,7 @@ public class RedDepot extends LinearOpMode {
 
         if(deliveryPosition ==HIGH) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(new Pose2d(-3, -43, toRadians(300)))
+                    .lineToLinearHeading(new Pose2d(-3, -47, toRadians(300)))
                     .build();
         } else if(deliveryPosition == MID) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
@@ -193,6 +193,7 @@ public class RedDepot extends LinearOpMode {
             //Drive forward until the element is detected
             //If a problem is detected the auton will get killed here
             success = r.moveUntilElement(drive, maximumDistance, this);
+
             if(!success) {
                 r.runIntakeBackwards();
                 Thread.sleep(2000);
@@ -209,7 +210,7 @@ public class RedDepot extends LinearOpMode {
             //Deliver the element
             TrajectorySequence deliver = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                     .addDisplacementMarker(() -> r.runIntakeBackwards())
-                    .addTemporalMarker(1, () -> r.stopIntake())
+                    .addTemporalMarker(2, () -> r.stopIntake())
                     .lineToConstantHeading(new Vector2d(14, -67))
                     .addDisplacementMarker(() -> r.getDeliveryControl().moveDelivery(HIGH))
                     .lineToLinearHeading(cycleDeliveryPos)

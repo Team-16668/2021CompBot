@@ -102,7 +102,7 @@ public class BlueCarousel extends LinearOpMode {
             }
 
         } else if (settings.getParkType() == SHIPPING_AREA) {
-            parkBuilder.lineToLinearHeading(new Pose2d(-66, 40, 0));
+            parkBuilder.lineToLinearHeading(new Pose2d(-66, 37, 0));
         }
 
         Trajectory park = parkBuilder.build();
@@ -141,7 +141,7 @@ public class BlueCarousel extends LinearOpMode {
         } else {
             //LOW
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(new Pose2d(-28, 37, toRadians(145)))
+                    .lineToLinearHeading(new Pose2d(-27, 36, toRadians(145)))
                     .build();
         }
 
