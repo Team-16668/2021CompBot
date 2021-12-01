@@ -22,7 +22,7 @@ public class Constants {
     public static PIDFCoefficients DELIVERY_PID = new PIDFCoefficients(0, 0, 0, 0);
 
     //Intake Element speed
-    public static final double INTAKE_ELEMENT_SPEED = 0.075;
+    public static final double INTAKE_ELEMENT_SPEED = 0.05;
 
     public static final double INTAKE_SPEED = 1.00;
     public static final double DELIVERY_SPEED = 0.50;

@@ -267,8 +267,8 @@ public class Robot {
 
         //Logic for Automatically moving the delivery arm
         //TODO: Make all these controls based on GamepadEx
-        if( gamepad2.wasJustPressed(A)//currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
-        ){
+        if( currDeliveryAuto && prevDeliveryAuto != currDeliveryAuto) {
+        
             if(getDeliveryControl().getServoPosition() == STOWED_SERVO) {
                 if (getDeliveryControl().getSlidePosition() != STOWED) {
                     getDeliveryControl().moveDelivery(STOWED);
