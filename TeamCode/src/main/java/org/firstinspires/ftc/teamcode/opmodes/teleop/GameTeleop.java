@@ -50,9 +50,8 @@ public class GameTeleop extends LinearOpMode {
             telemetry.addLine("Press A and B on gamepad 1 to switch alliance");
             telemetry.addData("Element loaded", r.getDeliveryControl().isElementLoaded());
             telemetry.addData("Distance readout", r.getDeliveryControl().getDistanceSensor().getDistance(MM));
+            telemetry.addData("Light state", r.getLightPattern().name());
             telemetry.update();
-
         }
     }
-
 }

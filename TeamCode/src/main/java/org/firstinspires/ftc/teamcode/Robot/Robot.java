@@ -413,7 +413,7 @@ public class Robot {
         } else if(getDeliveryControl().isDistanceError() && pattern != ERROR_PATTERN) {
             lights.setPattern(ERROR_PATTERN);
             pattern = ERROR_PATTERN;
-        } else if(pattern != UNLOADED_PATTERN){
+        } else if(!getDeliveryControl().isElementLoaded() && !getDeliveryControl().isDistanceError() &&  pattern != UNLOADED_PATTERN){
             lights.setPattern(UNLOADED_PATTERN);
             pattern = UNLOADED_PATTERN;
         }
@@ -573,6 +573,8 @@ public class Robot {
     public PIDFCoefficients getDeliveryPID() {
         return DELIVERY_PID;
     }
+
+    public BlinkinPattern getLightPattern() {return pattern;}
 
     public void updateDeliveryPID() {
         deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);
