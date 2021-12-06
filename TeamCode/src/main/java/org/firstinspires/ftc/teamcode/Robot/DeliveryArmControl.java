@@ -4,11 +4,12 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
 import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DISTANCE;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_STOWED_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.ELEMENT_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO;
-import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_STOWED_POS_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_INTAKE_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.*;
 
@@ -51,8 +52,8 @@ public class DeliveryArmControl {
         this.delivery.setMode(STOP_AND_RESET_ENCODER);
         //this.delivery.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
-        servoPosition = STOWED_SERVO;
+        deliveryServo.setPosition(DELIVERY_INTAKE_POS_SERVO);
+        servoPosition = INTAKE_SERVO;
 
         mode = AUTOMATIC;
         slidePosition = INTAKE;
@@ -66,7 +67,7 @@ public class DeliveryArmControl {
         int chosenCounts = 0;
         if(position == STOWED) {
             chosenCounts = stowedCounts;
-            deliverServoStow();
+            deliveryServoIntake();
         } else if(position == LOW) {
             chosenCounts = lowCounts;
         } else if(position == MID) {
@@ -109,12 +110,17 @@ public class DeliveryArmControl {
         }
     }
 
-    public void deliverServoDeliver() {
+    public void deliveryServoDeliver() {
         deliveryServo.setPosition(DELIVERY_DELIVER_POS_SERVO);
         servoPosition = DELIVER_SERVO;
     }
 
-    public void deliverServoStow() {
+    public void deliveryServoIntake() {
+        deliveryServo.setPosition(DELIVERY_INTAKE_POS_SERVO);
+        servoPosition = INTAKE_SERVO;
+    }
+
+    public void deliveryServoStow() {
         deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
         servoPosition = STOWED_SERVO;
     }
@@ -155,7 +161,7 @@ public class DeliveryArmControl {
     }
 
     public enum DeliveryServoPositions {
-        STOWED_SERVO, DELIVER_SERVO
+        INTAKE_SERVO, DELIVER_SERVO, STOWED_SERVO
     }
 
     public enum ArmModes {

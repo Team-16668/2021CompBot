@@ -162,9 +162,9 @@ public class OldBlueDepot extends LinearOpMode {
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
-        r.getDeliveryControl().deliverServoDeliver();
+        r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
-        r.getDeliveryControl().deliverServoStow();
+        r.getDeliveryControl().deliveryServoIntake();
         Thread.sleep(500);
         r.getDeliveryControl().moveDelivery(STOWED);
 

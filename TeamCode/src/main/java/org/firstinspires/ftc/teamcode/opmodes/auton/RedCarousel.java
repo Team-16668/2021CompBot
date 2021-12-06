@@ -6,7 +6,6 @@ import static org.firstinspires.ftc.teamcode.Robot.Alliance.Alliances.*;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.*;
-import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.FAST;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.NORMAL;
 import static java.lang.Math.*;
 
@@ -26,7 +25,6 @@ import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions
 import org.firstinspires.ftc.teamcode.Robot.Robot;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.vision.DuckDetector;
 import org.firstinspires.ftc.teamcode.vision.ShippingElementDetector;
 
 import java.util.Arrays;
@@ -151,7 +149,7 @@ public class RedCarousel extends LinearOpMode {
 
         Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
                 .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
+                    r.getDeliveryControl().deliveryServoIntake();
                 })
                 .addTemporalMarker(0.5, () -> {
                     r.getDeliveryControl().moveDelivery(STOWED);
@@ -164,7 +162,7 @@ public class RedCarousel extends LinearOpMode {
         drive.followTrajectory(deliverPreload);
 
         //TODO: Change this to the new delivery method for the other autons (Red carousel should be done already)
-        r.getDeliveryControl().deliverServoDeliver();
+        r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
         //Deliver duck to the field

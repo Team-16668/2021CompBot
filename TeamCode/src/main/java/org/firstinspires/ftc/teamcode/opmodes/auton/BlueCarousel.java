@@ -152,7 +152,7 @@ public class BlueCarousel extends LinearOpMode {
 
         Trajectory toCarousel = drive.trajectoryBuilder(deliverPreload.end())
                 .addDisplacementMarker(() -> {
-                    r.getDeliveryControl().deliverServoStow();
+                    r.getDeliveryControl().deliveryServoIntake();
                 })
                 .addTemporalMarker(0.5, () -> {
                     r.getDeliveryControl().moveDelivery(STOWED);
@@ -163,7 +163,7 @@ public class BlueCarousel extends LinearOpMode {
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
-        r.getDeliveryControl().deliverServoDeliver();
+        r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
         drive.followTrajectory(toCarousel);

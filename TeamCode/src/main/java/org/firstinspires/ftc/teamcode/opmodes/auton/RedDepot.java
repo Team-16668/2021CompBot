@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
@@ -12,7 +11,6 @@ import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
@@ -31,17 +29,13 @@ import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.SHIPP
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
-import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.LOW;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static java.lang.Math.*;
 
-import android.os.FileUriExposedException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * Created by: barta
@@ -91,7 +85,7 @@ public class RedDepot extends LinearOpMode {
         TrajectorySequenceBuilder parkBuilder = drive.trajectorySequenceBuilder(cycleDeliveryPos);
         if(settings.getParkType() == OFFSET || settings.getParkType() == REGULAR || settings.getParkType() == SHIPPING_AREA) {
             parkBuilder
-                    .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+                    .addDisplacementMarker(() -> r.getDeliveryControl().deliveryServoIntake())
                     .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
                     .lineToLinearHeading(new Pose2d(12, -66, 0))
                     .lineToConstantHeading(new Vector2d(38, -66), new MinVelocityConstraint(
@@ -161,7 +155,7 @@ public class RedDepot extends LinearOpMode {
 
             TrajectorySequence trajectory;
             TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(startPose)
-                    .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
+                    .addDisplacementMarker(() -> r.getDeliveryControl().deliveryServoIntake())
                     .addTemporalMarker(1, () -> r.getDeliveryControl().moveDelivery(INTAKE))
                     .lineToLinearHeading(new Pose2d(12, -67, toRadians(0)))
                     .lineToConstantHeading(pickupPoints.get(i))
@@ -179,7 +173,7 @@ public class RedDepot extends LinearOpMode {
         r.getDeliveryControl().moveDelivery(deliveryPosition);
         drive.followTrajectory(deliverPreload);
 
-        r.getDeliveryControl().deliverServoDeliver();
+        r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
         //Attempt cycles as long as we have time left on the clock :D
@@ -220,7 +214,7 @@ public class RedDepot extends LinearOpMode {
             drive.followTrajectorySequence(deliver);
 
             //Deliver the freight and move on
-            r.getDeliveryControl().deliverServoDeliver();
+            r.getDeliveryControl().deliveryServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
             maximumDistance += 4;

@@ -17,9 +17,9 @@ public class DeliveryTest extends LinearOpMode {
 
         while(opModeIsActive()) {
             if(gamepad1.dpad_up) {
-                r.getDeliveryControl().deliverServoDeliver();
+                r.getDeliveryControl().deliveryServoDeliver();
             } else if(gamepad1.dpad_down) {
-                r.getDeliveryControl().deliverServoStow();
+                r.getDeliveryControl().deliveryServoIntake();
             }
 
             telemetry.addData("Servo Position", r.getDeliveryControl().getDeliveryServo().getPosition());
