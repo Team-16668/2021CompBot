@@ -79,7 +79,7 @@ public class BlueDepot extends LinearOpMode {
         /**
          * All the movement for cycling
          */
-        Pose2d cycleDeliveryPos = new Pose2d(-4, 46, toRadians(60));
+        Pose2d cycleDeliveryPos = new Pose2d(-1, 43, toRadians(60));
 
         /**
          * Move three:
@@ -91,7 +91,7 @@ public class BlueDepot extends LinearOpMode {
                     .addDisplacementMarker(() -> r.getDeliveryControl().deliverServoStow())
                     .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
                     .lineToLinearHeading(new Pose2d(12, 69, 0))
-                    .lineToConstantHeading(new Vector2d(32, 69), new MinVelocityConstraint(
+                    .lineToConstantHeading(new Vector2d(40, 69), new MinVelocityConstraint(
                                     Arrays.asList(
                                             new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
                                             new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
@@ -99,7 +99,7 @@ public class BlueDepot extends LinearOpMode {
                             ),
                             new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
             if(settings.getParkType() == OFFSET) {
-                parkBuilder.lineToConstantHeading(new Vector2d(32, 42));
+                parkBuilder.lineToConstantHeading(new Vector2d(40, 42));
             }
         }
 
@@ -130,7 +130,7 @@ public class BlueDepot extends LinearOpMode {
                     .build();
         } else if(deliveryPosition == MID) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(new Pose2d(-3, 46, toRadians(60)))
+                    .lineToLinearHeading(new Pose2d(-3, 42, toRadians(60)))
                     .build();
         } else {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
@@ -173,10 +173,6 @@ public class BlueDepot extends LinearOpMode {
         r.getDeliveryControl().deliverServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
 
-        r.runIntakeForward();
-        Thread.sleep(2000);
-        r.stopIntake();
-
         //Attempt cycles as long as we have time left on the clock :D
 
         boolean success;
@@ -195,8 +191,8 @@ public class BlueDepot extends LinearOpMode {
                 r.stopIntake();
                 if(settings.getParkType() == OFFSET) {
                     drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                            .lineToConstantHeading(new Vector2d(32, 66))
-                            .lineToConstantHeading(new Vector2d(32, 36))
+                            .lineToConstantHeading(new Vector2d(40, 66))
+                            .lineToConstantHeading(new Vector2d(40, 40   ))
                             .build());
                 }
                 stop();
