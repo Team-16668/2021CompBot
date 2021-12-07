@@ -29,6 +29,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.DELIVER_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.INTAKE_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.STOWED_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 
@@ -330,10 +331,10 @@ public class Robot {
         //Move the servo between the two positions
         if(currServoSwitch && currServoSwitch != prevServoSwitch) {
             if(getDeliveryControl().getSlidePosition() != STOWED && getDeliveryControl().getSlidePosition() != INTAKE) {
-                if (getDeliveryControl().getServoPosition() == INTAKE_SERVO) {
+                if (getDeliveryControl().getServoPosition() == STOWED_SERVO) {
                     getDeliveryControl().deliveryServoDeliver();
                 }else if (getDeliveryControl().getServoPosition() == DELIVER_SERVO) {
-                    getDeliveryControl().deliveryServoIntake();
+                    getDeliveryControl().deliveryServoStow();
                 }
             }
         }
