@@ -44,6 +44,8 @@ public class Constants {
     public static final BlinkinPattern LOADED_PATTERN = GREEN;
     public static final BlinkinPattern UNLOADED_PATTERN = BLACK;
     public static final BlinkinPattern ERROR_PATTERN = RED;
+    public static final BlinkinPattern SEARCHING_PATTERN = YELLOW;
+    public static final BlinkinPattern LOAD_FAIL = FIRE_LARGE;
 
     //Hardware ID's
     public static final String LEFT_FRONT = "left_front";
