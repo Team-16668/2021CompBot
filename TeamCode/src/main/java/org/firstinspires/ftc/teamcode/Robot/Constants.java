@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 public class Constants {
     //Constants for the intake and delivery
     public static final double DELIVERY_INTAKE_POS_SERVO = 0.95;
-    public static final double DELIVERY_STOWED_POS_SERVO = 0.5;
+    public static final double DELIVERY_CARRY_POS_SERVO = 0.7;
     public static final double DELIVERY_DELIVER_POS_SERVO = 0.1;
     public static final int DELIVERY_SERVO_WAIT_TIME = 1000;
     public static final double DELIVERY_EXTENDED_COUNTS = 850;

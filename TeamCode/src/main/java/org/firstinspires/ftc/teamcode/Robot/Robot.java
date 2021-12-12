@@ -29,7 +29,7 @@ import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPo
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.STOWED;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.DELIVER_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.INTAKE_SERVO;
-import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.STOWED_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryServoPositions.CARRY_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.CarouselSpeeds.*;
 import static org.firstinspires.ftc.teamcode.Robot.Robot.IntakeDirections.*;
 
@@ -83,7 +83,7 @@ public class Robot {
     boolean waitDeliveryDown = false;
 
     ElapsedTime deliveryTimer2;
-    boolean waitServoStow = false;
+    boolean waitServoCarry = false;
 
     public Robot(HardwareMap hardwareMap, boolean initializeBackVision, OpenCvPipeline backPipeline, boolean initializeFrontVision, OpenCvPipeline frontPipeline) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
@@ -277,7 +277,7 @@ public class Robot {
                 } else {
                     getDeliveryControl().moveDelivery(automaticPosition);
                     deliveryTimer2.reset();
-                    waitServoStow = true;
+                    waitServoCarry = true;
                 }
             } else if(getDeliveryControl().getSlidePosition() != STOWED){
                 getDeliveryControl().deliveryServoIntake();
@@ -300,9 +300,9 @@ public class Robot {
             waitDeliveryDown = false;
         }
 
-        if(deliveryTimer2.time(MILLISECONDS) > 500 && waitServoStow) {
-            getDeliveryControl().deliveryServoStow();
-            waitServoStow = false;
+        if(deliveryTimer2.time(MILLISECONDS) > 250 && waitServoCarry) {
+            getDeliveryControl().deliveryServoCarry();
+            waitServoCarry = false;
         }
 
         //Switch the level that the intake automatically goes to
@@ -331,10 +331,10 @@ public class Robot {
         //Move the servo between the two positions
         if(currServoSwitch && currServoSwitch != prevServoSwitch) {
             if(getDeliveryControl().getSlidePosition() != STOWED && getDeliveryControl().getSlidePosition() != INTAKE) {
-                if (getDeliveryControl().getServoPosition() == STOWED_SERVO) {
+                if (getDeliveryControl().getServoPosition() == CARRY_SERVO) {
                     getDeliveryControl().deliveryServoDeliver();
                 }else if (getDeliveryControl().getServoPosition() == DELIVER_SERVO) {
-                    getDeliveryControl().deliveryServoStow();
+                    getDeliveryControl().deliveryServoCarry();
                 }
             }
         }

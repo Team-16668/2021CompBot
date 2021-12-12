@@ -195,8 +195,8 @@ public class RedDepot extends LinearOpMode {
                 r.stopIntake();
                 if(settings.getParkType() == OFFSET) {
                     drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                            .lineToConstantHeading(new Vector2d(32, -66))
-                            .lineToConstantHeading(new Vector2d(32, -36))
+                            .lineToConstantHeading(new Vector2d(36, -66))
+                            .lineToConstantHeading(new Vector2d(36, -36))
                             .build());
                 }
                 stop();

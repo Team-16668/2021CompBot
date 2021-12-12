@@ -4,7 +4,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
 import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DISTANCE;
-import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_STOWED_POS_SERVO;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_CARRY_POS_SERVO;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.ELEMENT_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.ArmModes.*;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_DELIVER_POS_SERVO;
@@ -120,9 +120,9 @@ public class DeliveryArmControl {
         servoPosition = INTAKE_SERVO;
     }
 
-    public void deliveryServoStow() {
-        deliveryServo.setPosition(DELIVERY_STOWED_POS_SERVO);
-        servoPosition = STOWED_SERVO;
+    public void deliveryServoCarry() {
+        deliveryServo.setPosition(DELIVERY_CARRY_POS_SERVO);
+        servoPosition = CARRY_SERVO;
     }
 
     public boolean isElementLoaded() {
@@ -161,7 +161,7 @@ public class DeliveryArmControl {
     }
 
     public enum DeliveryServoPositions {
-        INTAKE_SERVO, DELIVER_SERVO, STOWED_SERVO
+        INTAKE_SERVO, DELIVER_SERVO, CARRY_SERVO
     }
 
     public enum ArmModes {

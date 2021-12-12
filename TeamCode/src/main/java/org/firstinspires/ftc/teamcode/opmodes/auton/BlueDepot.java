@@ -136,9 +136,10 @@ public class BlueDepot extends LinearOpMode {
                     .build();
         }
 
-        List<Vector2d> pickupPoints = new ArrayList<Vector2d>() {{
-            add(new Vector2d(43, 67));
-        }};
+        List<Vector2d> pickupPoints = new ArrayList<>(Arrays.asList(
+                new Vector2d(43, 67),
+                new Vector2d(43, 67)
+        ));
 
         List<TrajectorySequence> pickups = new ArrayList<>();
 
@@ -175,7 +176,7 @@ public class BlueDepot extends LinearOpMode {
 
         boolean success;
         double maximumDistance = 10;
-        for(int i = 0; i < 1; i++) {
+        for(int i = 0; i < 2; i++) {
             //Go to pick up the freight
             drive.followTrajectorySequence(pickups.get(i));
 
