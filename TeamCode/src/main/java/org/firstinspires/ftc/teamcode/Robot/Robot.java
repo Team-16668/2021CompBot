@@ -423,6 +423,8 @@ public class Robot {
 
     public boolean moveUntilElement(SampleMecanumDrive drive, double maximumDistance, LinearOpMode opMode) throws InterruptedException {
 
+        lights.setPattern(SEARCHING_PATTERN);
+
         Pose2d startPose = drive.getPoseEstimate();
 
         drive.setWeightedDrivePower(new Pose2d(
@@ -430,26 +432,29 @@ public class Robot {
                 0,
                 0
         ));
-        //TODO: Test stopping if we've moved beyond the maximum distance
 
         boolean element = false;
         boolean movedTooFar = false;
-        boolean error = false;
+        boolean sensorError = false;
 
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
 
-        while(!element && !movedTooFar && !error && opMode.opModeIsActive()) {
+        while(!element && opMode.opModeIsActive()) {
             drive.update();
             Thread.sleep(50);
             element = getDeliveryControl().isElementLoaded();
 
             movedTooFar = getDistance(startPose, drive.getPoseEstimate()) > maximumDistance ? true : false;
-            error = getDeliveryControl().isDistanceError();
-            if(movedTooFar || timer.seconds() > 5 || error) {
+            sensorError = getDeliveryControl().isDistanceError();
+            boolean failed = movedTooFar || timer.seconds() > 5 || sensorError;
+            if(failed) {
+                lights.setPattern(LOAD_FAIL);
                 drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
                 return false;
             }
+
+            lights.setPattern(LOADED_PATTERN);
         }
 
         drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
