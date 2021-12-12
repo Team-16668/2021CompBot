@@ -77,7 +77,7 @@ public class RedDepot extends LinearOpMode {
         /**
          * All the movement for cycling
          */
-        Pose2d cycleDeliveryPos = new Pose2d(-5, -46, toRadians(300));
+        Pose2d cycleDeliveryPos = new Pose2d(-6, -46, toRadians(300));
 
         /**
          *  Park
@@ -119,7 +119,6 @@ public class RedDepot extends LinearOpMode {
         }
 
         waitForStart();
-
         timer.start();
 
         //Detect the position of the Team Shipping Element
@@ -142,7 +141,8 @@ public class RedDepot extends LinearOpMode {
 
         List<Vector2d> pickupPoints = new ArrayList<Vector2d>(Arrays.asList(
                 new Vector2d(40, -67),
-                new Vector2d(40, -67)
+                new Vector2d(42, -67),
+                new Vector2d(44, -67)
         ));
 
         List<TrajectorySequence> pickups = new ArrayList<>();
@@ -181,22 +181,25 @@ public class RedDepot extends LinearOpMode {
 
         boolean success;
         double maximumDistance = 10;
-        for(int i = 0; i < 2; i++) {
+        for(int i = 0; i < 3; i++) {
             //Go to pick up the freight
             drive.followTrajectorySequence(pickups.get(i));
 
             //Drive forward until the element is detected
             //If a problem is detected the auton will get killed here
             success = r.moveUntilElement(drive, maximumDistance, this);
-
-            if(!success) {
+            boolean timeLeft = timer.remainingTime() > 8;
+            telemetry.addData("Time remaining", timer.remainingTime());
+            telemetry.update();
+            //TODO: Park was too close to wall
+            if(!success || !timeLeft) {
                 r.runIntakeBackwards();
                 Thread.sleep(2000);
                 r.stopIntake();
                 if(settings.getParkType() == OFFSET) {
                     drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                            .lineToConstantHeading(new Vector2d(36, -66))
-                            .lineToConstantHeading(new Vector2d(36, -36))
+                            .lineToConstantHeading(new Vector2d(40, -66))
+                            .lineToConstantHeading(new Vector2d(40, -42))
                             .build());
                 }
                 stop();

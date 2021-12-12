@@ -24,6 +24,10 @@ public class GameTeleop extends LinearOpMode {
         r = new Robot(hardwareMap, gamepad1, gamepad2);
         drive = new SampleMecanumDrive(hardwareMap);
 
+        while(!opModeIsActive()) {
+            r.lightsLoop();
+            Thread.sleep(50);
+        }
 
         waitForStart();
 

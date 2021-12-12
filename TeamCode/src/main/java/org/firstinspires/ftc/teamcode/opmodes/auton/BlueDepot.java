@@ -89,13 +89,7 @@ public class BlueDepot extends LinearOpMode {
                     .addDisplacementMarker(() -> r.getDeliveryControl().deliveryServoIntake())
                     .addTemporalMarker(0.5, () -> r.getDeliveryControl().moveDelivery(STOWED))
                     .lineToLinearHeading(new Pose2d(12, 69, 0))
-                    .lineToConstantHeading(new Vector2d(40, 69), new MinVelocityConstraint(
-                                    Arrays.asList(
-                                            new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-                                            new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-                                    )
-                            ),
-                            new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL));
+                    .lineToConstantHeading(new Vector2d(40, 69));
             if(settings.getParkType() == OFFSET) {
                 parkBuilder.lineToConstantHeading(new Vector2d(40, 42));
             }
@@ -118,6 +112,7 @@ public class BlueDepot extends LinearOpMode {
         }
 
         waitForStart();
+        timer.start();
 
         DeliveryPositions deliveryPosition = ((ShippingElementDetector) r.getBackPipeline()).getDeliveryPosition();
 
@@ -137,6 +132,7 @@ public class BlueDepot extends LinearOpMode {
         }
 
         List<Vector2d> pickupPoints = new ArrayList<>(Arrays.asList(
+                new Vector2d(43, 67),
                 new Vector2d(43, 67),
                 new Vector2d(43, 67)
         ));
@@ -176,15 +172,15 @@ public class BlueDepot extends LinearOpMode {
 
         boolean success;
         double maximumDistance = 10;
-        for(int i = 0; i < 2; i++) {
+        for(int i = 0; i < 3; i++) {
             //Go to pick up the freight
             drive.followTrajectorySequence(pickups.get(i));
 
             //Drive forward until the element is detected
             //If a problem is detected the auton will get killed here
             success = r.moveUntilElement(drive, maximumDistance, this);
-
-            if(!success) {
+            boolean timeLeft = timer.remainingTime() > 8;
+            if(!success && !timeLeft) {
                 r.runIntakeBackwards();
                 Thread.sleep(2000);
                 r.stopIntake();
@@ -197,6 +193,7 @@ public class BlueDepot extends LinearOpMode {
                 stop();
             }
 
+            //TODO: Add failed as option for pre-element delivery
             //Deliver the element
             TrajectorySequence deliver = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                     .addDisplacementMarker(() -> r.runIntakeBackwards())

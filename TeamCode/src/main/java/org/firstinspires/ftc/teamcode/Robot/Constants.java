@@ -21,7 +21,7 @@ public class Constants {
     public static final double DELIVERY_INTAKE_COUNTS = 0;
 
     //Distance sensor threshold (in MM)
-    public static final double ELEMENT_THRESHOLD = 90;
+    public static final double ELEMENT_THRESHOLD = 70;
 
     //Delivery Motor PIDF
     public static PIDFCoefficients DELIVERY_PID = new PIDFCoefficients(0, 0, 0, 0);
