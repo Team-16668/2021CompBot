@@ -3,10 +3,6 @@ package org.firstinspires.ftc.teamcode.opmodes.auton;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.AngularVelocityConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
-import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -14,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot.AutonSettings;
 import org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions;
 import org.firstinspires.ftc.teamcode.Robot.Robot;
-import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequenceBuilder;
@@ -27,6 +22,7 @@ import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSE
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.REGULAR;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.SHIPPING_AREA;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.UNLOADED_PATTERN;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
@@ -167,6 +163,7 @@ public class BlueDepot extends LinearOpMode {
 
         r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+        r.setLightPattern(UNLOADED_PATTERN);
 
         //Attempt cycles as long as we have time left on the clock :D
 
@@ -180,8 +177,9 @@ public class BlueDepot extends LinearOpMode {
             //If a problem is detected the auton will get killed here
             success = r.moveUntilElement(drive, maximumDistance, this);
             boolean timeLeft = timer.remainingTime() > 8;
-            if(!success && !timeLeft) {
+            if(!success || !timeLeft) {
                 r.runIntakeBackwards();
+                drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate()).lineToConstantHeading(new Vector2d(drive.getPoseEstimate().getX() - 4, drive.getPoseEstimate().getY())).build());
                 Thread.sleep(2000);
                 r.stopIntake();
                 if(settings.getParkType() == OFFSET) {
@@ -209,6 +207,7 @@ public class BlueDepot extends LinearOpMode {
             //Deliver the freight and move on
             r.getDeliveryControl().deliveryServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+            r.setLightPattern(UNLOADED_PATTERN);
 
             maximumDistance += 4;
         }

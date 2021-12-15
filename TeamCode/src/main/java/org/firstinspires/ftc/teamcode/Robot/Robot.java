@@ -422,7 +422,6 @@ public class Robot {
     }
 
     public boolean moveUntilElement(SampleMecanumDrive drive, double maximumDistance, LinearOpMode opMode) throws InterruptedException {
-
         lights.setPattern(SEARCHING_PATTERN);
 
         Pose2d startPose = drive.getPoseEstimate();
@@ -582,6 +581,10 @@ public class Robot {
     }
 
     public BlinkinPattern getLightPattern() {return pattern;}
+
+    public void setLightPattern(BlinkinPattern pattern) {
+        lights.setPattern(pattern);
+    }
 
     public void updateDeliveryPID() {
         deliveryMotor.setPIDFCoefficients(RUN_TO_POSITION, DELIVERY_PID);

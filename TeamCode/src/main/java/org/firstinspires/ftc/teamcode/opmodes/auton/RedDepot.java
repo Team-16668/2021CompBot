@@ -27,6 +27,7 @@ import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.OFFSE
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.REGULAR;
 import static org.firstinspires.ftc.teamcode.Robot.AutonSettings.ParkTypes.SHIPPING_AREA;
 import static org.firstinspires.ftc.teamcode.Robot.Constants.DELIVERY_SERVO_WAIT_TIME;
+import static org.firstinspires.ftc.teamcode.Robot.Constants.UNLOADED_PATTERN;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.HIGH;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.INTAKE;
 import static org.firstinspires.ftc.teamcode.Robot.DeliveryArmControl.DeliveryPositions.MID;
@@ -134,7 +135,7 @@ public class RedDepot extends LinearOpMode {
                     .build();
         } else {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(new Pose2d(-4, -44, toRadians(300)))
+                    .lineToLinearHeading(new Pose2d(-5, -44, toRadians(300)))
                     .build();
         }
 
@@ -176,6 +177,7 @@ public class RedDepot extends LinearOpMode {
 
         r.getDeliveryControl().deliveryServoDeliver();
         Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+        r.setLightPattern(UNLOADED_PATTERN);
 
         //Attempt cycles as long as we have time left on the clock :D
 
@@ -194,6 +196,7 @@ public class RedDepot extends LinearOpMode {
             //TODO: Park was too close to wall
             if(!success || !timeLeft) {
                 r.runIntakeBackwards();
+                drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate()).lineToConstantHeading(new Vector2d(drive.getPoseEstimate().getX() - 4, drive.getPoseEstimate().getY())).build());
                 Thread.sleep(2000);
                 r.stopIntake();
                 if(settings.getParkType() == OFFSET) {
@@ -220,6 +223,7 @@ public class RedDepot extends LinearOpMode {
             //Deliver the freight and move on
             r.getDeliveryControl().deliveryServoDeliver();
             Thread.sleep(DELIVERY_SERVO_WAIT_TIME);
+            r.setLightPattern(UNLOADED_PATTERN);
 
             maximumDistance += 4;
         }
