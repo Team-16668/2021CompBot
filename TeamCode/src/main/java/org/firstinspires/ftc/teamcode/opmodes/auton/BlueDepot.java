@@ -73,7 +73,7 @@ public class BlueDepot extends LinearOpMode {
         /**
          * All the movement for cycling
          */
-        Pose2d cycleDeliveryPos = new Pose2d(-1, 43, toRadians(60));
+        Pose2d cycleDeliveryPos = new Pose2d(-1, 42, toRadians(60));
 
         /**
          * Move three:

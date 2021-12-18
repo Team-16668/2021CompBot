@@ -131,7 +131,7 @@ public class RedDepot extends LinearOpMode {
                     .build();
         } else if(deliveryPosition == MID) {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
-                    .lineToLinearHeading(new Pose2d(-3, -46, toRadians(300)))
+                    .lineToLinearHeading(new Pose2d(-3, -45         , toRadians(300)))
                     .build();
         } else {
             deliverPreload = drive.trajectoryBuilder(drive.getPoseEstimate())
