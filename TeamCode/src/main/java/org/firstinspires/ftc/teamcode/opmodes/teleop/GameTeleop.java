@@ -41,7 +41,7 @@ public class GameTeleop extends LinearOpMode {
             r.carouselControlLoop(gamepad1);
 
             //Loop for the control of the delivery arm and intake.
-            r.armControlLoopTeleOp(gamepad2, telemetry);
+            r.armControlLoopTeleOp(gamepad1, telemetry);
 
             //Switch the alliance in case of emergency
             //TODO: test the alliance switching

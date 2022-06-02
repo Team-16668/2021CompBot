@@ -261,8 +261,8 @@ public class Robot {
         deliveryUpManual = gamepad.dpad_up;
         deliveryDownManual = gamepad.dpad_down;
 
-        currLowerDelivery = gamepad.left_bumper;
-        currRaiseDelivery = gamepad.right_bumper;
+        currLowerDelivery = gamepad.dpad_left;
+        currRaiseDelivery = gamepad.dpad_right;
 
         intakeForward = gamepad.right_trigger > 0;
         intakeBackward = gamepad.left_trigger > 0;

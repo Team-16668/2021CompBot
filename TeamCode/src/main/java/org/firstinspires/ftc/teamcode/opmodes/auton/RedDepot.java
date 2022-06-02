@@ -78,7 +78,7 @@ public class RedDepot extends LinearOpMode {
         /**
          * All the movement for cycling
          */
-        Pose2d cycleDeliveryPos = new Pose2d(-6, -46, toRadians(300));
+        Pose2d cycleDeliveryPos = new Pose2d(-5, -46, toRadians(300));
 
         /**
          *  Park
